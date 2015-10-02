@@ -160,7 +160,7 @@ function newShip(x, y, hp, screen)
 	end
 
 	function ship:checkWarp()
-		local ww = love.graphics.getWidth() / scale
+		local ww = love.graphics.getWidth()
 		local wh = 240
 
 		if self.x + self.width > ww then
@@ -168,12 +168,12 @@ function newShip(x, y, hp, screen)
 
 			game_randomStaticPlanet()
 
-		elseif self.y + self.height > wh and self.screen == "top" then
+		elseif self.y > wh and self.screen == "top" then
 			self.screen = "bottom"
 			self.y = 0
 			
 			game_randomStaticPlanet()
-		elseif self.x < 0 then
+		elseif self.x + self.width < 0 then
 			self.x = ww - 40
 
 			game_randomStaticPlanet()

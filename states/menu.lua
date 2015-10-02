@@ -35,9 +35,9 @@ function menu_load(fromGame)
 	{
 		["main"] = 
 		{
-			newGUI("button", getWindowWidth() / 2 - menubuttonfont:getWidth("Start Game") / 2 - 40, 80, "Start Game", function() game_load() end, {}),
-			newGUI("button", getWindowWidth() / 2 - menubuttonfont:getWidth("Credits") / 2 - 40, 108, "Credits", function() menustate = "credits" end),
-			newGUI("button", getWindowWidth() / 2 - menubuttonfont:getWidth("Exit Game") / 2 - 40, 136, "Exit Game", function() love.event.quit() end)
+			newGUI("button", getWindowWidth() / 2 - menubuttonfont:getWidth("Start Game") / 2, 80, "Start Game", function() game_load() end, {}),
+			newGUI("button", getWindowWidth() / 2 - menubuttonfont:getWidth("Credits") / 2, 108, "Credits", function() menustate = "credits" end),
+			newGUI("button", getWindowWidth() / 2 - menubuttonfont:getWidth("Exit Game") / 2, 136, "Exit Game", function() love.event.quit() end)
 		},
 
 		["settings"] = 
@@ -128,12 +128,13 @@ function menu_draw()
 		v:draw()
 	end
 
+	love.graphics.setScreen("bottom")
+
 	if _G["menu_" .. menustate .. "_draw"] then
 		_G["menu_" .. menustate .. "_draw"]()
 	end
 
 	if menuGUI[menustate] then
-		love.graphics.setScreen("bottom")
 		
 		for i, v in pairs(menuGUI[menustate]) do
 			v:draw()
@@ -169,7 +170,7 @@ function menu_credits_draw()
 	for k = 1, #credits do
 		love.graphics.setScreen("bottom")
 
-		love.graphics.print(credits[k], getWindowWidth() / 2 - hudfont:getWidth(credits[k]) / 2 - 40, (240 + (k - 1) * 16) - creditsscroll)
+		love.graphics.print(credits[k], getWindowWidth() / 2 - hudfont:getWidth(credits[k]) / 2, (240 + (k - 1) * 16) - creditsscroll)
 	end
 
 	--love.graphics.setScissor()

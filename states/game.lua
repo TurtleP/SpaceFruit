@@ -272,15 +272,9 @@ function game_keypressed(key)
 			end
 		end
 
-		if key == "escape" and start_game then
+		if key == "start" and start_game then
 			paused = not paused
 		end
-	end
-end
-
-function game_joystickaxis(joy, axis, value)
-	if objects["ship"][1] then
-		objects["ship"][1]:joystickAxis(joy, axis, value)
 	end
 end
 

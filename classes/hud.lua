@@ -9,6 +9,8 @@ function newHud()
 	hud.shieldActive = false
 
 	function hud:draw(hearts)
+		love.graphics.setScreen("top")
+		
 		love.graphics.setColor(255, 255, 255)
 
 		love.graphics.print("[Health:", self.x, self.y)
