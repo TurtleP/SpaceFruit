@@ -1,0 +1,18 @@
+[6/07/15]
+
+Added credits to the main menu
+Added joystick support
+Added "toggle fullscreen" to settings
+Added "rebind controls" to settings
+Added loading and saving of data in one file
+
+[4/27/15]
+
+Added a main menu
+Added settings menu (toggle sounds, music, and delete your highscore)
+
+[4/23/15]
+
+Added the bugfix for a crash on dying
+Added fullscreen (press TAB <->, it will reload the game though!)
+Added the bugfix for rotating the ship (it stopped if you moved left/right and the opposite key shortly after)
