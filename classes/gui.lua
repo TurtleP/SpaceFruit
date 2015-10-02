@@ -1,3 +1,6 @@
+local hackyMouseX = 0
+local hackyMouseY = 0
+
 function newGUI(...)
 	
 	local f = {...}
@@ -13,7 +16,6 @@ function newGUI(...)
 	gui.hightlight = {100, 100, 100}
 	gui.currColor = gui.unHighlight
 
-	gui.oldfont = love.graphics.getFont()
 	gui.font = menubuttonfont
 
 	if f[1]== "button" then
@@ -50,11 +52,9 @@ function newGUI(...)
 				self.currColor = self.unHighlight
 			end
 
-			love.graphics.setColor(self.currColor)
+			love.graphics.setColor(unpack(self.currColor))
 			love.graphics.print(self.text, self.x, self.y)
 		end
-
-		love.graphics.setFont(self.oldfont)
 
 		love.graphics.setColor(255, 255, 255)
 	end
@@ -70,6 +70,7 @@ function newGUI(...)
 	end	
 
 	function gui:mousepressed(x, y, button)
+		hackyMouseX, hackyMouseY = x, y
 		if button == "l" then
 			if self:inside() then
 				if self.type == "button" then
@@ -86,8 +87,8 @@ function newGUI(...)
 	end
 
 	function gui:inside()
-		local mx = love.mouse.getX()
-		local my = love.mouse.getY()
+		local mx = hackyMouseX
+		local my = hackyMouseY
 
 		return mx > self.x * scale and mx < self.x * scale + self.width * scale and my > self.y * scale and my < self.y * scale + self.height * scale
 	end

@@ -1,12 +1,12 @@
-function newSplat(x, y, fruit)
+function newSplat(x, y, fruit, screen)
 	local splat = {}
 
 	splat.x = x
 	splat.y = y
-	splat.graphic = graphics["splat"]
-	splat.quad = quads["splat"]
+	splat.graphic = splatimg
 	splat.quadi = 1
 	splat.timer = 0
+	splat.screen = screen
 
 	splat.color = {255, 255, 255}
 	if fruit == 1 then
@@ -39,9 +39,14 @@ function newSplat(x, y, fruit)
 	end
 
 	function splat:draw()
-		love.graphics.setColor(self.color)
-		love.graphics.draw(self.graphic, self.quad[self.quadi], self.x, self.y)
-		love.graphics.setColor(255, 255, 255)
+		love.graphics.setScreen(self.screen)
+
+		if self.quadi < 6 then
+			love.graphics.setColor(unpack(self.color))
+			love.graphics.draw(self.graphic[self.quadi], self.x, self.y)
+			love.graphics.setColor(255, 255, 255)
+		end
+
 	end
 
 	return splat
