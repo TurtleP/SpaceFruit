@@ -1,29 +1,28 @@
-local fruitSpeedx = {-math.random(90, 180), math.random(90, 180)}
-local fruitSpeedy = {math.random(90, 180), -math.random(90, 180)}
+local fruitSpeedx = {-love.math.random(90, 180), love.math.random(90, 180)}
+local fruitSpeedy = {love.math.random(90, 180), -love.math.random(90, 180)}
 
-function newFruit(x, y, screen)
+function newFruit(x, y)
 
 	local fruit= {}
 	fruit.x = x
 	fruit.y = y
-	fruit.graphics = fruitimg
+	fruit.graphics = graphics["fruit"]
 	fruit.rotation = 0
 	fruit.width = 22
 	fruit.height = 22
-	fruit.i = math.random(1, 9)
+	fruit.quad = quads["fruit"]
+	fruit.quadi = love.math.random(#quads["fruit"])
 
 	fruit.startx = x
 	fruit.starty = y
 
-	fruit.screen = screen
-
 	fruit.speedx = fruitSpeedx[2]
-	if fruit.startx == love.graphics.getWidth() / scale then
+	if fruit.startx == love.window.getWidth() / scale then
 		fruit.speedx = fruitSpeedx[1]
 	end
 
 	fruit.speedy = fruitSpeedy[2]
-	if fruit.starty < (love.graphics.getWidth() / scale) / 2 then
+	if fruit.starty < (love.window.getHeight() / scale) / 2 then
 		fruit.speedy = fruitSpeedy[1]
 	end
 	
@@ -36,34 +35,17 @@ function newFruit(x, y, screen)
 
 		if self.x + self.width < 0 and self.speedx < 0 then
 			self.remove = true
-		elseif self.x > love.graphics.getWidth() / scale and self.speedx > 0 then
+		elseif self.x > love.window.getWidth() / scale and self.speedx > 0 then
 			self.remove = true
 		elseif self.y + self.height < 0 and self.speedy < 0 then
 			self.remove = true
-		elseif self.y > love.graphics.getWidth() / scale and self.speedy > 0 then
+		elseif self.y > love.window.getHeight() / scale and self.speedy > 0 then
 			self.remove = true
-		end
-
-		if self.x > 40 and self.x < love.graphics.getWidth() - 80 then
-			if self.screen == "top" then
-				if self.y > love.graphics.getHeight() then
-					self.screen = "bottom"
-					self.y = 0
-				end
-			else
-				if self.y < 0 then
-					self.screen = "top"
-					self.y = love.graphics.getHeight()
-				end
-			end
 		end
 	end
 
 	function fruit:draw()
-		love.graphics.setScreen(self.screen)
-
-		love.graphics.draw(self.graphics[self.i], self.x + 11, self.y + 11,self.rotation,1,1, 11, 11)
-
+		love.graphics.draw(self.graphics, quads["fruit"][self.quadi], self.x + 11, self.y + 11,self.rotation,1,1, 11, 11)
 	end
 
 	function fruit:onCollide(name,data)
@@ -80,26 +62,26 @@ function newFruit(x, y, screen)
 	end
 
 	function fruit:destroy(playerHit, player)
-		-- game_playsound(fruitboom[math.random(#fruitboom)])
+		game_playsound(fruitboom[love.math.random(#fruitboom)])
 
 		if not playerHit then
 			addScore(1)
 
 			--if game's score is divisible by 10
-			if gamescore%10 == 0 and gamescore ~= 0 then
-				objects["player"][1]:addLife(1)
+			if gamescore%10 == 0 then
+				table.insert(objects["powerup"], newPowerup(self.x + (self.width / 2) - 8, self.y + (self.height / 2) - 8, 2))
 			end
 
 			player.hud.shieldbar = math.min(player.hud.shieldbar + 1, player.hud.shieldbarmax)
 		end
 
-		table.insert(splats, newSplat(self.x, self.y, self.i, self.screen))
+		table.insert(splats, newSplat(self.x, self.y, self.quadi))
 
-		if self.i == 3 then
-			table.insert(objects["fruit"], newGrapePiece(self.x + self.width, self.y + self.height, math.random(90, 120), math.random(90, 120)))
-			table.insert(objects["fruit"], newGrapePiece(self.x + self.width, self.y - self.height, math.random(90, 120), -math.random(90, 120)))
-			table.insert(objects["fruit"], newGrapePiece(self.x, self.y + self.height, -math.random(90, 120), math.random(90, 120)))
-			table.insert(objects["fruit"], newGrapePiece(self.x, self.y, -math.random(90, 120), -math.random(90, 120)))
+		if self.quadi == 3 then
+			table.insert(objects["fruit"], newGrapePiece(self.x + self.width, self.y + self.height, love.math.random(90, 120), love.math.random(90, 120)))
+			table.insert(objects["fruit"], newGrapePiece(self.x + self.width, self.y - self.height, love.math.random(90, 120), -love.math.random(90, 120)))
+			table.insert(objects["fruit"], newGrapePiece(self.x, self.y + self.height, -love.math.random(90, 120), love.math.random(90, 120)))
+			table.insert(objects["fruit"], newGrapePiece(self.x, self.y, -love.math.random(90, 120), -love.math.random(90, 120)))
 		end
 
 		self.remove = true
@@ -108,7 +90,7 @@ function newFruit(x, y, screen)
 	return fruit
 end
 
-function newGrapePiece(x, y, speedx, speedy, quadi, screen)
+function newGrapePiece(x, y, speedx, speedy, quadi)
 	local grapepiece = {}
 
 	grapepiece.x = x
@@ -121,7 +103,6 @@ function newGrapePiece(x, y, speedx, speedy, quadi, screen)
 	grapepiece.height = 8
 	grapepiece.graphic = graphics["grapepiece"]
 	grapepiece.rotation = 0
-	grapepiece.screen = screen
 
 	function grapepiece:update(dt)
 		self.x = self.x + self.speedx * dt
@@ -131,18 +112,16 @@ function newGrapePiece(x, y, speedx, speedy, quadi, screen)
 
 		if self.x + self.width < 0 and self.speedx < 0 then
 			self.remove = true
-		elseif self.x > love.graphics.getWidth() / scale and self.speedx > 0 then
+		elseif self.x > love.window.getWidth() / scale and self.speedx > 0 then
 			self.remove = true
 		elseif self.y + self.height < 0 and self.speedy < 0 then
 			self.remove = true
-		elseif self.y > love.graphics.getWidth() / scale and self.speedy > 0 then
+		elseif self.y > love.window.getHeight() / scale and self.speedy > 0 then
 			self.remove = true
 		end
 	end
 
 	function grapepiece:draw()
-		love.graphics.setScreen(self.screen)
-
 		love.graphics.draw(self.graphic, self.x + 4, self.y + 4, self.rotation, 1, 1, 4, 4)
 	end
 
@@ -160,7 +139,7 @@ function newGrapePiece(x, y, speedx, speedy, quadi, screen)
 	end
 
 	function grapepiece:destroy(playerHit)
-		--game_playsound(fruitboom[math.random(#fruitboom)])
+		game_playsound(fruitboom[love.math.random(#fruitboom)])
 
 		if not playerHit then
 			addScore(2)

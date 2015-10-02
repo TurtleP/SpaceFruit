@@ -1,13 +1,13 @@
 function menu_load(fromGame)
 
 	for k = 1, 100 do
-		stars[k] = newStar(math.random(4, love.graphics.getWidth() / scale - 8), math.random(4, love.graphics.getHeight() / scale - 8), screens[math.random(#screens)])
+		stars[k] = newStar(love.math.random(4, love.window.getWidth() / scale - 8), love.math.random(4, love.window.getHeight() / scale - 8))
 	end
 
-	--[[if fromGame then
+	if fromGame then
 		bgm:stop()
 		saveLoadSettings(false)
-	end]]
+	end
 
 	state = "menu"
 
@@ -19,25 +19,26 @@ function menu_load(fromGame)
 
 	menuFruit = {}
 
-	menufruitTimer = newRecursionTimer(math.random(2, 4),
+	menufruitTimer = newRecursionTimer(love.math.random(2, 4),
 		function()
 			local posx = {4, getWindowWidth()}
-			local posy = {math.random(4, getWindowHeight())}
+			local posy = {love.math.random(4, getWindowHeight())}
 
-			table.insert(menuFruit, newFruit(posx[math.random(#posx)], posy[math.random(#posy)], screens[math.random(#screens)]))
+			table.insert(menuFruit, newFruit(posx[love.math.random(#posx)], posy[love.math.random(#posy)]))
 		end
 	)
 
-	--mainmenu:setLooping(true)
-	--mainmenu:play()
+	mainmenu:setLooping(true)
+	mainmenu:play()
 
 	menuGUI = 
 	{
 		["main"] = 
 		{
-			newGUI("button", getWindowWidth() / 2 - menubuttonfont:getWidth("Start Game") / 2 - 40, 80, "Start Game", function() game_load() end, {}),
-			newGUI("button", getWindowWidth() / 2 - menubuttonfont:getWidth("Credits") / 2 - 40, 108, "Credits", function() menustate = "credits" end),
-			newGUI("button", getWindowWidth() / 2 - menubuttonfont:getWidth("Exit Game") / 2 - 40, 136, "Exit Game", function() love.event.quit() end)
+			newGUI("button", getWindowWidth() / 2 - menubuttonfont:getWidth("Start Game") / 2, 160, "Start Game", function() love.audio.stop(mainmenu) game_load() end, {}),
+			newGUI("button", getWindowWidth() / 2 - menubuttonfont:getWidth("Settings") / 2, 190, "Settings", function() menustate = "settings" end),
+			newGUI("button", getWindowWidth() / 2 - menubuttonfont:getWidth("Credits") / 2, 220, "Credits", function() menustate = "credits" end),
+			newGUI("button", getWindowWidth() / 2 - menubuttonfont:getWidth("Exit Game") / 2, 250, "Exit Game", function() love.event.quit() end)
 		},
 
 		["settings"] = 
@@ -69,7 +70,19 @@ function menu_load(fromGame)
 
 	menustate = "main"
 
+	settings_boxX = getWindowWidth() / 2 - 175
+	settings_boxY = 140
+	settings_boxW = 350
+	settings_boxH = 140
+	settings_box_timer = 0
+
+	credits_delay = 3
 	creditsscroll = 0
+
+	controlCycle = {"Turn Right", "Turn Left", "Thrust", "Shoot", "Shield"}
+
+	gamepadDelayDown = false
+	gamepadDelay = 0.6
 end
 
 
@@ -114,7 +127,15 @@ function menu_update(dt)
 	end
 
 	if menustate == "credits" then
-		creditsscroll = math.min(creditsscroll + 26 * dt, 240 + hudfont:getHeight(credits[#credits]) * 16)
+		if credits_delay > 0 then
+			credits_delay = math.max(credits_delay - dt, 0)
+		else
+			creditsscroll = math.min(creditsscroll + 26 * dt, 120 + hudfont:getHeight(credits[#credits]) * 16)
+		end
+	end
+
+	if gamepadDelayDown then
+		gamepadDelay = math.max(0, gamepadDelay - dt)
 	end
 end
 
@@ -133,27 +154,52 @@ function menu_draw()
 	end
 
 	if menuGUI[menustate] then
-		love.graphics.setScreen("bottom")
-		
 		for i, v in pairs(menuGUI[menustate]) do
 			v:draw()
 		end
-		
 	end
 
-	love.graphics.setScreen("top")
+	love.graphics.setFont(title)
 
+	love.graphics.setStencil(function() love.graphics.rectangle("fill", getWindowWidth() / 2 - title:getWidth("SPACE") / 2, 40, title:getWidth("SPACE"), title:getHeight("SPACE") / 2) end )
 	love.graphics.setColor(93, 96, 160)
-	love.graphics.draw(titleimg[1], love.graphics.getWidth() / 2 - titleimg[1]:getWidth() / 2, 48)
+	love.graphics.print("SPACE", getWindowWidth() / 2 - title:getWidth("SPACE") / 2, 40)
+	love.graphics.setStencil()
 
+	love.graphics.setStencil(function() love.graphics.rectangle("fill", getWindowWidth() / 2 - title:getWidth("SPACE") / 2, 40 + title:getHeight("SPACE") / 2, title:getWidth("SPACE"), title:getHeight("SPACE") / 2) end )
 	love.graphics.setColor(67, 70, 114)
-	love.graphics.draw(titleimg[2], love.graphics.getWidth() / 2 - titleimg[1]:getWidth() / 2, 64)
-	
+	love.graphics.print("SPACE", getWindowWidth() / 2 - title:getWidth("SPACE") / 2, 40)
+	love.graphics.setStencil()
+
+	love.graphics.setFont(titleHuge)
 	for k = 1, #titlewords do
-		love.graphics.setColor(unpack(colorfade(titletimer[k], 2, fruit_colors[titleColor1[k]], fruit_colors[titleColor2[k]])))
-		love.graphics.draw(fruittitle[k], (love.graphics.getWidth() / 2 - 100) + (k - 1) * 42, 96)
+		love.graphics.setColor(colorfade(titletimer[k], 2, fruit_colors[titleColor1[k]], fruit_colors[titleColor2[k]]))
+		love.graphics.print(titlewords[k], getWindowWidth() / 2 - titleHuge:getWidth("FRUIT") / 2 + (k - 1) * 40, 70)
 	end
+
+	if setControls then
+		love.graphics.setColor(0, 0, 0, 120)
+		love.graphics.rectangle("fill", 0, 0, getWindowWidth() * scale, getWindowHeight() * scale)
+
+		love.graphics.setFont(mediumfont)
+
+		local key = controls[currentControl]
+		local newkey = ""
+		if key == " " then
+			newkey = "Spacebar"
+		end
+
+		love.graphics.setColor(32, 32, 32)
+		love.graphics.rectangle("fill", getWindowWidth() / 2 - mediumfont:getWidth("Press a key for: " .. controlCycle[currentControl]) / 2, getWindowHeight() / 2 - mediumfont:getHeight("Press a key for: " .. controlCycle[currentControl]) / 2, mediumfont:getWidth("Press a key for: " .. controlCycle[currentControl]), mediumfont:getHeight("Press a key for: " .. controlCycle[currentControl]))
+		love.graphics.rectangle("fill", getWindowWidth() / 2 - mediumfont:getWidth("Current Bind: " .. newkey) / 2, getWindowHeight() / 2 - mediumfont:getHeight("Current Bind: " .. newkey) / 2 + 16, mediumfont:getWidth("Current Bind: " .. newkey), mediumfont:getHeight("Current Bind: " .. key))
+
+		love.graphics.setColor(255, 255, 255)
+
 		
+
+		love.graphics.print("Press a key for: " .. controlCycle[currentControl], getWindowWidth() / 2 - mediumfont:getWidth("Press a key for: " .. controlCycle[currentControl]) / 2, getWindowHeight() / 2 - mediumfont:getHeight("Press a key for: " .. controlCycle[currentControl]) / 2)
+		love.graphics.print("Current Bind: " .. newkey, getWindowWidth() / 2 - mediumfont:getWidth("Current Bind: " .. newkey) / 2, getWindowHeight() / 2 - mediumfont:getHeight("Current Bind: " .. newkey) / 2 + 16)
+	end
 end
 
 function menu_main_draw()
@@ -163,16 +209,18 @@ function menu_main_draw()
 end
 
 function menu_credits_draw()
-	--love.graphics.setScissor(0, 120 * scale, getWindowWidth() * scale, getWindowHeight() * scale - 120 * scale)
+	love.graphics.setScissor(0, 120 * scale, getWindowWidth() * scale, getWindowHeight() * scale - 120 * scale)
+
+	local currFont = love.graphics.getFont()
 
 	love.graphics.setFont(hudfont)
 	for k = 1, #credits do
-		love.graphics.setScreen("bottom")
-
-		love.graphics.print(credits[k], getWindowWidth() / 2 - hudfont:getWidth(credits[k]) / 2 - 40, (240 + (k - 1) * 16) - creditsscroll)
+		love.graphics.print(credits[k], getWindowWidth() / 2 - hudfont:getWidth(credits[k]) / 2, (120 + (k - 1) * 16) - creditsscroll)
 	end
 
-	--love.graphics.setScissor()
+	love.graphics.setFont(currFont)
+
+	love.graphics.setScissor()
 end
 
 function menu_mousepressed(x, y, button)
@@ -186,5 +234,44 @@ end
 function menu_keypressed(key)
 	if setControls and key ~= "escape" then
 		menu_setControls("keyboard", key)
+	else
+		menu_setControls()
+	end
+end
+
+function menu_setControls(t, value)
+	if setControls and value then
+		
+		if t == "gamepad" then
+			if gamepadDelay > 0 then
+				gamepadDelayDown = true
+				return
+			end
+
+			if controlCycle[currentControl] == "Turn Right" or controlCycle[currentControl] == "Turn Left" or controlCycle[currentControl] == "Thrust" then
+				if not value:find(":") then
+					return
+				end
+			end
+		end
+
+		controls[currentControl] = value
+
+		currentControl = currentControl + 1
+
+		if t == "gamepad" then
+			if gamepadDelay == 0 then
+				gamepadDelay = 0.6
+			end
+		end
+
+		if currentControl > #controls then
+			print("Stopping!")
+			setControls = false
+			currentControl = 1
+		end
+	else
+		setControls = false
+		currentControl = 1
 	end
 end

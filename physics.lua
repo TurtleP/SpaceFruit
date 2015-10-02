@@ -8,13 +8,11 @@ function physics:update(dt)
 
 				if v ~= t then
 					for _, obj2Data in pairs(t) do
-						if objData.screen == obj2Data.screen then
-							if self:aabb(objData.x, objData.y, objData.width, objData.height, obj2Data.x, obj2Data.y, obj2Data.width, obj2Data.height) then
-								if objData.onCollide then
-									objData:onCollide(obj2Name, obj2Data)
-								end
+						if self:aabb(objData.x, objData.y, objData.width, objData.height, obj2Data.x, obj2Data.y, obj2Data.width, obj2Data.height) then
+							if objData.onCollide then
+								objData:onCollide(obj2Name, obj2Data)
 							end
-						end
+						end	
 					end
 				end
 			end
