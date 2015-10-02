@@ -1,3 +1,6 @@
+[8/15/15]
+Corrected a misspelling of a name in the credits
+
 [6/07/15]
 
 Added credits to the main menu
