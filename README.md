@@ -1,8 +1,6 @@
-# Space_Fruit
-A Hackathon 2015 game made by four friends
+# Space Fruit
+A Hackathon 2015 game made by four friends.
+This is a 3DS Homebrew port.
 
-# How to compile
-Simply download this and rename the zip file to .love
-(make sure the directory reads as space_fruit/ and not space_fruit/space_fruit)
-
-
+This also requires the use of LovePotion by VideahGames
+Plans for .3dsx, .cia, and others coming soon.
