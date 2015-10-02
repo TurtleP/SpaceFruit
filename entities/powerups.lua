@@ -1,5 +1,5 @@
-local powerupsSpeedx = {-love.math.random(90, 180), love.math.random(90, 180)}
-local powerupsSpeedy = {love.math.random(90, 180), -love.math.random(90, 180)}
+local powerupsSpeedx = {-math.random(90, 180), math.random(90, 180)}
+local powerupsSpeedy = {math.random(90, 180), -math.random(90, 180)}
 
 function newPowerup(x, y, i)
 

@@ -5,7 +5,7 @@ function newStar(x, y)
 	star.y = y
 	star.twinkle = false
 
-	local r = love.math.random(100)
+	local r = math.random(100)
 	if r < 25 then
 		star.twinkle = true
 	end
@@ -23,7 +23,7 @@ function newStar(x, y)
 
 	function star:draw()
 		love.graphics.setColor(255, 255, 255, 255 * self.alpha)
-		love.graphics.point(self.x, self.y)
+		love.graphics.rectangle('fill', self.x, self.y, 1, 1)
 
 		love.graphics.setColor(255, 255, 255)
 	end

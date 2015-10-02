@@ -1,7 +1,7 @@
 function newHud()
 	local hud = {}
 
-	hud.x = ( love.window.getWidth() / scale ) / 2 - hudfont:getWidth("[Health:") / 2 - 30
+	hud.x = ( love.graphics.getWidth() / scale ) / 2 - hudfont:getWidth("[Health:") / 2 - 30
 	hud.y = 2
 
 	hud.shieldbar = 0

@@ -1,4 +1,4 @@
-function newShip(x, y, hp)
+function newShip(x, y, hp, screen)
 	local ship = {}
 
 	ship.x = x
@@ -7,7 +7,6 @@ function newShip(x, y, hp)
 	ship.rotation = 0
 	ship.width = 40
 	ship.height = 40
-	ship.quad = quads["ship"]
 	ship.quadi = 1
 	ship.animtimer = 0
 	ship.shouldrotate = false
@@ -22,18 +21,22 @@ function newShip(x, y, hp)
 
 	ship.rotationright = false
 	ship.rotationleft = false
-
+	ship.screen = screen
+	
 	function ship:draw()
 		if self.drawable then
-			love.graphics.draw(graphics["ship"], self.quad[self.quadi][self.hits], self.x + 20, self.y + 20, self.rotation, 1, 1, self.width / 2, self.height / 2)
+			love.graphics.setScreen(self.screen)
+			
+			love.graphics.draw(shipimg[self.hp][self.quadi], self.x + 20, self.y + 20, self.rotation, 1, 1, self.width / 2, self.height / 2)
+	
 		end
 
 		self.hud:draw(self.hp)
 	end
 
 	function ship:shoot()
-		game_playsound(shoot[love.math.random(#shoot)])
-		table.insert(objects.bullet, newBullet(self.x + (self.width / 2) - 0.5, self.y + (self.height / 2) - 3, self.rotation, self))
+		--game_playsound(shoot[math.random(#shoot)])
+		table.insert(objects.bullet, newBullet(self.x + (self.width / 2) - 0.5, self.y + (self.height / 2) - 3, self.rotation, self, self.screen))
 	end
 
 	function ship:update(dt)
@@ -53,27 +56,27 @@ function newShip(x, y, hp)
 
 		if self.shouldMove then
 			if self.moveForth then
-				self.speedy = -math.cos(self.rotation) * 2
-				self.speedx = math.sin(self.rotation) * 2
+				self.speedy = -math.cos(self.rotation) * 120
+				self.speedx = math.sin(self.rotation) * 120
 			end
 		end
 
 		if self.speedy > 0 then
-			self.speedy = math.max(self.speedy - 2 * dt, 0)
+			self.speedy = math.max(self.speedy - 100 * dt, 0)
 		else
-			self.speedy = math.min(self.speedy + 2 * dt, 0)
+			self.speedy = math.min(self.speedy + 100 * dt, 0)
 		end
 
 		if self.speedx > 0 then
-			self.speedx = math.max(self.speedx - 2 * dt, 0)
+			self.speedx = math.max(self.speedx - 100 * dt, 0)
 		else
-			self.speedx = math.min(self.speedx + 2 * dt, 0)
+			self.speedx = math.min(self.speedx + 100 * dt, 0)
 		end
 
 		self:checkWarp()
 
-		self.y = self.y + self.speedy
-		self.x = self.x + self.speedx
+		self.y = self.y + self.speedy * dt
+		self.x = self.x + self.speedx * dt
 
 		if self.invincible then
 			self.invincibletimer = self.invincibletimer + 6 * dt 
@@ -88,6 +91,14 @@ function newShip(x, y, hp)
 				self.invincibletimer = 0
 				self.invincible = false
 			end
+		end
+		
+		if self.y < 0 and self.screen == "top" then
+			self.speedy = 0
+			self.y = 0
+		elseif self.y + self.height > love.graphics.getHeight() and self.screen == "bottom" then
+			self.speedy = 0
+			self.y = love.graphics.getHeight() - self.height
 		end
 
 		self.hud:update(dt)
@@ -107,9 +118,7 @@ function newShip(x, y, hp)
 	end
 
 	function ship:move(key)
-		print(controls[4])
 		if key == controls[4] then
-			print("!")
 			self:shoot()
 		end
 
@@ -130,7 +139,7 @@ function newShip(x, y, hp)
 
 	function ship:addShield()
 		if self.hud.shieldbar == self.hud.shieldbarmax then
-			table.insert(objects["powerup"], newShield(self))
+			table.insert(objects["powerup"], newShield(self, self.screen))
 			self.hud.shieldActive = true
 		end
 	end
@@ -150,55 +159,17 @@ function newShip(x, y, hp)
 		end
 	end
 
-	function ship:joystickAxis(joystick, axis, value)
-		if joystick == game_joystick then
-			if axis == 1 then
-				if value > 0.2 then
-					self.rotationright = true
-				elseif value < 0.2 and value >= 0 then
-					self.rotationright = false
-				end
-			end
-
-			if axis == 1 then
-				if value < -0.2 then
-					self.rotationleft = true
-				elseif value > -0.2 and value <= 0 then
-					self.rotationleft = false
-				end
-			end
-
-			if axis == 2 then
-				if value < -0.2 then
-					self:moveForward()
-				elseif value > -0.2 and value <= 0 then
-					self.moveForth = false
-					self.shouldMove = false
-				end
-			end
-		end
-	end
-
-	function ship:gamePad(button)
-		if button == "a" or button == "x" then
-			self:shoot()
-		end
-
-		if button == "y" or button == "b" then
-			self:addShield()
-		end
-	end
-
 	function ship:checkWarp()
-		local ww = love.window.getWidth() / scale
-		local wh = love.window.getHeight() / scale
+		local ww = love.graphics.getWidth() / scale
+		local wh = 240
 
 		if self.x + self.width > ww then
 			self.x = 0
 
 			game_randomStaticPlanet()
 
-		elseif self.y + self.height > wh then
+		elseif self.y + self.height > wh and self.screen == "top" then
+			self.screen = "bottom"
 			self.y = 0
 			
 			game_randomStaticPlanet()
@@ -206,8 +177,9 @@ function newShip(x, y, hp)
 			self.x = ww - 40
 
 			game_randomStaticPlanet()
-		elseif self.y < 0 then
+		elseif self.y < 0 and self.screen == "bottom" then
 			self.y = wh - 40
+			self.screen = "top"
 
 			game_randomStaticPlanet()
 		end
@@ -221,16 +193,12 @@ function newShip(x, y, hp)
 				gameover = true
 				game_playsound(gameoversnd)
 				self.drawable = false
-			--	gameoversong = love.audio.newSource("sound/title.ogg", "stream")
-			--	gameoversong:setLooping(true)
-				
-
 				return
 			end
 
 			if lifeAmount < 0 then
 				if not self.hud.shieldActive then
-					game_playsound(damage[love.math.random(#damage)])
+					--game_playsound(damage[math.random(#damage)])
 
 					self.hits = math.min(self.hits + 1, 4)
 					self.invincible = true
