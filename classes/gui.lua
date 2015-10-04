@@ -1,6 +1,3 @@
-local hackyMouseX = 0
-local hackyMouseY = 0
-
 function newGUI(...)
 	
 	local f = {...}
@@ -17,6 +14,9 @@ function newGUI(...)
 	gui.currColor = gui.unHighlight
 
 	gui.font = menubuttonfont
+
+	_MOUSEX = 0
+	_MOUSEY = 0
 
 	if f[1]== "button" then
 		gui.text = f[4]
@@ -70,7 +70,7 @@ function newGUI(...)
 	end	
 
 	function gui:mousepressed(x, y, button)
-		hackyMouseX, hackyMouseY = x, y
+		_MOUSEX, _MOUSEY = x, y
 		if button == "l" then
 			if self:inside() then
 				if self.type == "button" then
@@ -87,8 +87,8 @@ function newGUI(...)
 	end
 
 	function gui:inside()
-		local mx = hackyMouseX
-		local my = hackyMouseY
+		local mx = _MOUSEX
+		local my = _MOUSEY
 
 		return mx > self.x * scale and mx < self.x * scale + self.width * scale and my > self.y * scale and my < self.y * scale + self.height * scale
 	end

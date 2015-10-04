@@ -1,8 +1,6 @@
 function game_load()
 
 	paused = false
-	
-	highscore = 0
 
 	objects = {}
 
@@ -35,11 +33,11 @@ function game_load()
 
 	instructions = 
 	{
-		keys[1] .. ", " .. keys[2] .. ",\nand " .. keys[3] .. " to move",
+		"circle pad to move",
 		keys[4] .. " TO SHOOT",
-		"ESCAPE TO PAUSE",
-		keys[5] .. " TO ACTIVATE\nSHIELD",
-		"SHOOT AS MANY FRUITS\nAS YOU CAN!",
+		"START TO PAUSE",
+		keys[5] .. " TO ACTIVATE SHIELD",
+		"SHOOT AS MANY FRUITS AS YOU CAN!",
 		"READY?",
 		"3..",
 		"2..",
@@ -53,8 +51,6 @@ function game_load()
 
 	start_game = false
 	state = "game"
-
-	gamescore = 0
 
 	game_randomStaticPlanet()
 
@@ -140,6 +136,9 @@ function game_update(dt)
 		if timeout < 3 then
 			timeout = timeout + dt
 		else
+			if gamescore > highscore then
+				highscore = gamescore
+			end
 			menu_load(true)
 		end
 
@@ -175,10 +174,6 @@ function game_update(dt)
 		end
 	else
 		fruitTimer:update(dt)
-	end
-
-	for k, v in ipairs(stars) do
-		v:update(dt)
 	end
 
 	for k, v in ipairs(splats) do
@@ -233,10 +228,12 @@ function game_draw()
 		love.graphics.setColor(0, 0, 0, 120)
 		love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight())
 
-		love.graphics.setColor(255, 255, 255)
+		love.graphics.setColor(255, 255, 255, 255)
 		love.graphics.setFont(menubuttonfont)
 		love.graphics.print("GAME PAUSED", (love.graphics.getWidth() / scale) / 2 - menubuttonfont:getWidth("GAME PAUSED") / 2, (love.graphics.getHeight() / scale) / 2 - menubuttonfont:getHeight("GAME PAUSED") / 2)
+
 		love.graphics.setFont(hudfont)
+		love.graphics.print("Press SELECT for the main menu", (love.graphics.getWidth() / scale) / 2 - hudfont:getWidth("Press SELECT for the main menu") / 2, (love.graphics.getHeight() / scale) / 2 - hudfont:getHeight("Press SELECT for the main menu") / 2 + 50)
 	end
 
 	if gameover then
@@ -274,6 +271,12 @@ function game_keypressed(key)
 
 		if key == "start" and start_game then
 			paused = not paused
+		end
+
+		if key == "select" then
+			if paused then
+				menu_load()
+			end
 		end
 	end
 end

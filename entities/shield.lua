@@ -21,7 +21,7 @@ function newShield(parent, screen)
 
 		love.graphics.setColor(0, 148, 255, 128)
 		love.graphics.circle("fill", self.parent.x + (self.parent.width / 2), self.parent.y + (self.parent.height / 2), self.radius)
-		love.graphics.setColor(255, 255, 255)
+		love.graphics.setColor(255, 255, 255, 255)
 		
 	end
 

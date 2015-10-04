@@ -62,7 +62,7 @@ function newFruit(x, y, screen)
 	function fruit:draw()
 		love.graphics.setScreen(self.screen)
 
-		love.graphics.draw(self.graphics[self.i], self.x + 11, self.y + 11,self.rotation,1,1, 11, 11)
+		love.graphics.draw(self.graphics[self.i], self.x, self.y, self.rotation)
 
 	end
 
@@ -87,7 +87,7 @@ function newFruit(x, y, screen)
 
 			--if game's score is divisible by 10
 			if gamescore%10 == 0 and gamescore ~= 0 then
-				objects["player"][1]:addLife(1)
+				player:addLife(1)
 			end
 
 			player.hud.shieldbar = math.min(player.hud.shieldbar + 1, player.hud.shieldbarmax)
@@ -96,10 +96,10 @@ function newFruit(x, y, screen)
 		table.insert(splats, newSplat(self.x, self.y, self.i, self.screen))
 
 		if self.i == 3 then
-			table.insert(objects["fruit"], newGrapePiece(self.x + self.width, self.y + self.height, math.random(90, 120), math.random(90, 120)))
-			table.insert(objects["fruit"], newGrapePiece(self.x + self.width, self.y - self.height, math.random(90, 120), -math.random(90, 120)))
-			table.insert(objects["fruit"], newGrapePiece(self.x, self.y + self.height, -math.random(90, 120), math.random(90, 120)))
-			table.insert(objects["fruit"], newGrapePiece(self.x, self.y, -math.random(90, 120), -math.random(90, 120)))
+			table.insert(objects["fruit"], newGrapePiece(self.x + self.width, self.y + self.height, math.random(90, 120), math.random(90, 120), self.screen))
+			table.insert(objects["fruit"], newGrapePiece(self.x + self.width, self.y - self.height, math.random(90, 120), -math.random(90, 120), self.screen))
+			table.insert(objects["fruit"], newGrapePiece(self.x, self.y + self.height, -math.random(90, 120), math.random(90, 120), self.screen))
+			table.insert(objects["fruit"], newGrapePiece(self.x, self.y, -math.random(90, 120), -math.random(90, 120), self.screen))
 		end
 
 		self.remove = true
@@ -108,7 +108,7 @@ function newFruit(x, y, screen)
 	return fruit
 end
 
-function newGrapePiece(x, y, speedx, speedy, quadi, screen)
+function newGrapePiece(x, y, speedx, speedy, screen)
 	local grapepiece = {}
 
 	grapepiece.x = x
@@ -143,7 +143,7 @@ function newGrapePiece(x, y, speedx, speedy, quadi, screen)
 	function grapepiece:draw()
 		love.graphics.setScreen(self.screen)
 
-		love.graphics.draw(self.graphic, self.x + 4, self.y + 4, self.rotation, 1, 1, 4, 4)
+		love.graphics.draw(self.graphic, self.x, self.y, self.rotation)
 	end
 
 	function grapepiece:onCollide(name,data)

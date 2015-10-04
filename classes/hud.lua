@@ -28,7 +28,7 @@ function newHud()
 
 		love.graphics.setColor(0, 163, 255)
 
-		love.graphics.rectangle("fill", ( self.x + hudfont:getWidth("[") ), self.y + hudfont:getHeight("["), ( self.shieldbar / self.shieldbarmax ) * 92, 1)
+		love.graphics.rectangle("fill", ( self.x + hudfont:getWidth("[") ), self.y + hudfont:getHeight("[") + 2, ( self.shieldbar / self.shieldbarmax ) * 92, 1)
 
 		love.graphics.setColor(255, 255, 255)
 	end

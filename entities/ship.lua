@@ -27,7 +27,7 @@ function newShip(x, y, hp, screen)
 		if self.drawable then
 			love.graphics.setScreen(self.screen)
 			
-			love.graphics.draw(shipimg[self.hp][self.quadi], self.x + 20, self.y + 20, self.rotation, 1, 1, self.width / 2, self.height / 2)
+			love.graphics.draw(shipimg[self.hp][self.quadi], self.x, self.y, self.rotation, 1, 1, self.width / 2, self.height / 2)
 	
 		end
 
@@ -36,7 +36,7 @@ function newShip(x, y, hp, screen)
 
 	function ship:shoot()
 		--game_playsound(shoot[math.random(#shoot)])
-		table.insert(objects.bullet, newBullet(self.x + (self.width / 2) - 0.5, self.y + (self.height / 2) - 3, self.rotation, self, self.screen))
+		table.insert(objects.bullet, newBullet(self.x + (self.width / 2) - 0.5, self.y + (self.height / 2) - 3, self.rotation, self.screen, self))
 	end
 
 	function ship:update(dt)
@@ -172,7 +172,7 @@ function newShip(x, y, hp, screen)
 			self.screen = "bottom"
 			self.y = 0
 			
-			game_randomStaticPlanet()
+			--game_randomStaticPlanet()
 		elseif self.x + self.width < 0 then
 			self.x = ww - 40
 
@@ -181,7 +181,7 @@ function newShip(x, y, hp, screen)
 			self.y = wh - 40
 			self.screen = "top"
 
-			game_randomStaticPlanet()
+			--game_randomStaticPlanet()
 		end
 	end
 

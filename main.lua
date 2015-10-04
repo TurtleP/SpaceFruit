@@ -75,7 +75,6 @@ function love.load()
 	
 	mainmenu = love.audio.newSource("sound/title.ogg", "stream")]]
 
-	gamescore = 0
 	highscore = 0
 	
 	love.window.setMode(400, 480)
@@ -84,8 +83,27 @@ function love.load()
 	menu_load()
 end
 
-function saveLoadSettings()
+function saveLoadSettings(save)
+	gamescore = 0
 
+	local filepath = "sdmc:/3ds/LovePotion/save.txt"
+
+	if save then
+		local file = io.open(filepath, "w")
+
+		if highscore then
+			file:write(highscore)
+			file:flush()
+			file:close()
+		end
+	else
+		local file = io.open(filepath, "r")
+
+		if file then
+			highscore = file:read("*n")
+			file:close()
+		end
+	end
 end
 
 --[[function loadQuads()
