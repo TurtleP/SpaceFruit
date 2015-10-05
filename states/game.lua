@@ -189,6 +189,13 @@ end
 
 function addScore(points)
 	gamescore = math.max(gamescore + points, 0)
+
+	--if game's score is divisible by 10
+	if gamescore%10 == 0 and gamescore ~= 0 then
+		if objects["ship"][1] then
+			objects["ship"][1]:addLife(1)
+		end
+	end
 end
 
 function game_draw()

@@ -52,24 +52,23 @@ function menu_load(fromGame)
 	creditsscroll = 0
 end
 
-
 function menu_update(dt)
 	menufruitTimer:update(dt)
 
-	for k, v in pairs(titletimer) do
+	for k = 1, #titletimer do
 		titletimer[k] = titletimer[k] + dt
 
 		if titletimer[k] > 2 then
 			local tmpColors = {unpack(titleColor1)}
 			local tmpColors2 = {unpack(titleColor2)}
 
-			for k, v in pairs(titleColor1) do
+			for k = 1, #titleColor1 do
 				local temp = tmpColors2[k]
 
 				titleColor1[k] = temp
 			end
 
-			for k, v in pairs(titleColor2) do
+			for k = 1, #titleColor2 do
 				local temp = tmpColors[k]
 
 				titleColor2[k] = temp
@@ -83,14 +82,14 @@ function menu_update(dt)
 		v:update(dt)
 	end	
 
+	if menustate == "credits" then
+		creditsscroll = math.min(creditsscroll + 26 * dt, (120 - hudfont:getHeight(credits[#credits]) / 2) * 16)
+	end
+
 	for k = #menuFruit, 1, -1 do
 		if menuFruit[k].remove then
 			table.remove(menuFruit, k)
 		end
-	end
-
-	if menustate == "credits" then
-		creditsscroll = math.min(creditsscroll + 26 * dt, (120 - hudfont:getHeight(credits[#credits]) / 2) * 16)
 	end
 end
 

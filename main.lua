@@ -1,25 +1,33 @@
+require 'physics'
+require 'vars'
+
+require 'states/menu'
+require 'states/game'
+
+require 'classes/gui'
+require 'classes/hud'
+require 'classes/splat'
+require 'classes/timer'
+
+require 'entities/bullet'
+require 'entities/fruit'
+require 'entities/powerups'
+require 'entities/shield'
+require 'entities/ship'
+require 'entities/star'
+require 'entities/timer'
+
 function love.load()
 	scale = 1
 	fullscrn = false
 
 	--shield charge: line at the bottom of brackets, lshift to activate. It drains slowly over time
 	--health regen: every 10 points
-	
+
 	graphics = {}
 	audio = {}
 
-	requireFiles("") --start recursiveness!
-
 	loadFonts()
-	
-	--[[quads = {}
-	if love.system.getOS() ~= "3ds" then
-		require 'pc'
-		
-		loadQuads()
-
-		love.graphics.setDefaultFilter("nearest", "nearest")
-	end]]
 
 	loadFonts()
 	
@@ -169,27 +177,6 @@ function love.keyreleased(key)
 	if _G[state .. "_keyreleased"] then
 		_G[state .. "_keyreleased"](key)
 	end
-end
-
-function requireFiles(path)
-	require 'physics'
-	require 'vars'
-
-	require 'states/menu'
-	require 'states/game'
-
-	require 'classes/gui'
-	require 'classes/hud'
-	require 'classes/splat'
-	require 'classes/timer'
-
-	require 'entities/bullet'
-	require 'entities/fruit'
-	require 'entities/powerups'
-	require 'entities/shield'
-	require 'entities/ship'
-	require 'entities/star'
-	require 'entities/timer'
 end
 
 function loadFonts()

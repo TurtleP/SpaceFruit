@@ -85,11 +85,6 @@ function newFruit(x, y, screen)
 		if not playerHit then
 			addScore(1)
 
-			--if game's score is divisible by 10
-			if gamescore%10 == 0 and gamescore ~= 0 then
-				player:addLife(1)
-			end
-
 			player.hud.shieldbar = math.min(player.hud.shieldbar + 1, player.hud.shieldbarmax)
 		end
 
