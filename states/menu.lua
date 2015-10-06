@@ -56,7 +56,10 @@ function menu_update(dt)
 	menufruitTimer:update(dt)
 
 	for k = 1, #titletimer do
-		titletimer[k] = titletimer[k] + dt
+
+		if dt > 0 then
+			titletimer[k] = titletimer[k] + dt
+		end
 
 		if titletimer[k] > 2 then
 			local tmpColors = {unpack(titleColor1)}

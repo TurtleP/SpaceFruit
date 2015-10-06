@@ -25,7 +25,10 @@ function newRecursionTimer(delay, func)
 
 	function rTimer:update(dt)
 
-		self.delay = self.delay - dt
+		if dt > 0 then
+			self.delay = self.delay - dt
+		end
+		
 		if self.delay < 0 then
 			if self.func then
 				self.func()
