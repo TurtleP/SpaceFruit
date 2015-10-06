@@ -1,4 +1,4 @@
-function newShield(parent)
+function newShield(parent, screen)
 	local shield = {}
 
 	shield.parent = parent
@@ -14,12 +14,15 @@ function newShield(parent)
 
 	shield.radius = 24
 	shield.drawAbove = true
+	shield.screen = screen
 
 	function shield:drawshield()
+		love.graphics.setScreen(self.screen)
+
 		love.graphics.setColor(0, 148, 255, 128)
 		love.graphics.circle("fill", self.parent.x + (self.parent.width / 2), self.parent.y + (self.parent.height / 2), self.radius)
-		love.graphics.setColor(255, 255, 255)
-		--love.graphics.circle("fill", self.parent.x + (self.parent.width / 2) + 12, self.parent.y + (self.parent.height / 2) - 8, 2)
+		love.graphics.setColor(255, 255, 255, 255)
+		
 	end
 
 	function shield:update(dt)

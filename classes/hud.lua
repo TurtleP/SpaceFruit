@@ -1,7 +1,7 @@
 function newHud()
 	local hud = {}
 
-	hud.x = ( love.window.getWidth() / scale ) / 2 - hudfont:getWidth("[Health:") / 2 - 30
+	hud.x = ( love.graphics.getWidth() / scale ) / 2 - hudfont:getWidth("[Health:") / 2 - 30
 	hud.y = 2
 
 	hud.shieldbar = 0
@@ -9,6 +9,8 @@ function newHud()
 	hud.shieldActive = false
 
 	function hud:draw(hearts)
+		love.graphics.setScreen("top")
+		
 		love.graphics.setColor(255, 255, 255)
 
 		love.graphics.print("[Health:", self.x, self.y)
@@ -26,7 +28,7 @@ function newHud()
 
 		love.graphics.setColor(0, 163, 255)
 
-		love.graphics.rectangle("fill", ( self.x + hudfont:getWidth("[") ), self.y + hudfont:getHeight("["), ( self.shieldbar / self.shieldbarmax ) * 92, 1)
+		love.graphics.rectangle("fill", ( self.x + hudfont:getWidth("[") ), self.y + hudfont:getHeight("[") + 2, ( self.shieldbar / self.shieldbarmax ) * 92, 1)
 
 		love.graphics.setColor(255, 255, 255)
 	end
