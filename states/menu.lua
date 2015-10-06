@@ -5,11 +5,17 @@ function menu_load(fromGame)
 		stars[k] = newStar(screens[math.random(#screens)])
 	end
 
-	if fromGame then
-		--bgm:stop()
-		saveLoadSettings(true)
-	end
+	--save settings/highscore
+	saveLoadSettings(true)
+	
+	--hahaha load
 	saveLoadSettings()
+	
+	controls = {"cpadright", "cpadleft", "cpadup", "a", "b"}
+	if controli == 2 then
+		controls[1] = "button_r"
+		controls[2] = "button_l"
+	end
 
 	titletimer = {0, 0, 0, 0, 0}
 
