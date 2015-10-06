@@ -30,8 +30,6 @@ function love.load()
 	loadFonts()
 
 	loadFonts()
-	
-	controls = {"cpadright", "cpadleft", "cpadup", "a", "b"}
 
 	stars = {}
 
@@ -87,6 +85,8 @@ function love.load()
 	
 	love.window.setMode(400, 480)
 	screens = {"top", "bottom"}
+	controltypes = {"circle pad", "circle pad up + L/R"}
+	controli = 1
 	
 	menu_load()
 end
@@ -98,9 +98,9 @@ function saveLoadSettings(save)
 
 	if save then
 		local file = io.open(filepath, "w")
-
-		if highscore then
-			file:write(highscore)
+		
+		if file then
+			file:write(highscore .. ";" .. controli .. ";")
 			file:flush()
 			file:close()
 		end
@@ -108,8 +108,12 @@ function saveLoadSettings(save)
 		local file = io.open(filepath, "r")
 
 		if file then
-			highscore = file:read("*n")
+			local split = file:read():split(";")
+			
 			file:close()
+			
+			highscore = tonumber(split[1])
+			controli = tonumber(split[2])
 		end
 	end
 end
