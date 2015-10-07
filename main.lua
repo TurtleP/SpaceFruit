@@ -100,7 +100,7 @@ function saveLoadSettings(save)
 		local file = io.open(filepath, "w")
 		
 		if file then
-			file:write(highscore .. ";" .. controli .. ";")
+			file:write(highscore)
 			file:flush()
 			file:close()
 		end
@@ -108,12 +108,9 @@ function saveLoadSettings(save)
 		local file = io.open(filepath, "r")
 
 		if file then
-			local split = file:read():split(";")
+			highscore = file:read("*n")
 			
 			file:close()
-			
-			highscore = tonumber(split[1])
-			controli = tonumber(split[2])
 		end
 	end
 end
