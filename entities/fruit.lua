@@ -48,11 +48,13 @@ function newFruit(x, y, screen)
 			if self.screen == "top" then
 				if self.y > love.graphics.getHeight() then
 					self.screen = "bottom"
+					self.x = self.x - 40
 					self.y = 0
 				end
 			else
 				if self.y < 0 then
 					self.screen = "top"
+					self.x = self.x + 40
 					self.y = love.graphics.getHeight()
 				end
 			end

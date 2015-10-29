@@ -23,11 +23,13 @@ function newBullet(x, y, rotation, screen, parent)
 		elseif self.y > love.graphics.getHeight() and self.screen == "top" then
 			if self.x > 40 and self.x < love.graphics.getWidth() - 80 then
 				self.screen = "bottom"
+				self.x = self.x - 40
 				self.y = 0
 			end
 		elseif self.y + self.height < 0 and self.screen == "bottom" then
 			if self.x > 40 and self.x < love.graphics.getWidth() - 80 then
 				self.screen = "top"
+				self.x = self.x + 40
 				self.y = love.graphics.getHeight() - self.height
 			end
 		end

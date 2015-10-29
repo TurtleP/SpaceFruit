@@ -92,14 +92,6 @@ function newShip(x, y, hp, screen)
 				self.invincible = false
 			end
 		end
-		
-		if self.y < 0 and self.screen == "top" then
-			self.speedy = 0
-			self.y = 0
-		elseif self.y + self.height > love.graphics.getHeight() and self.screen == "bottom" then
-			self.speedy = 0
-			self.y = love.graphics.getHeight() - self.height
-		end
 
 		self.hud:update(dt)
 	end
@@ -171,17 +163,32 @@ function newShip(x, y, hp, screen)
 		elseif self.y > wh and self.screen == "top" then
 			self.screen = "bottom"
 			self.y = 0
+			self.x = self.x - 40
 			
-			--game_randomStaticPlanet()
+			game_randomStaticPlanet()
 		elseif self.x + self.width < 0 then
 			self.x = ww - 40
 
 			game_randomStaticPlanet()
 		elseif self.y < 0 and self.screen == "bottom" then
 			self.y = wh - 40
+			self.x = self.x + 40
+
 			self.screen = "top"
 
-			--game_randomStaticPlanet()
+			game_randomStaticPlanet()
+		end
+
+		if self.y < 0 and self.screen == "top" then
+			self.screen = "bottom"
+			self.y = love.graphics.getHeight()
+			self.x = self.x - 40
+			game_randomStaticPlanet()
+		elseif self.y + self.height > love.graphics.getHeight() and self.screen == "bottom" then
+			self.x = self.x + 40
+			self.screen = "top"
+			self.y = 0
+			game_randomStaticPlanet()
 		end
 	end
 

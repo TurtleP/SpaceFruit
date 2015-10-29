@@ -33,7 +33,8 @@ function game_load()
 
 	instructions = 
 	{
-		"circle pad to move",
+		"circle pad up to move",
+		"l and r to rotate",
 		keys[4] .. " TO SHOOT",
 		"START TO PAUSE",
 		keys[5] .. " TO ACTIVATE SHIELD",
@@ -159,7 +160,7 @@ function game_update(dt)
 		instructiontimer = instructiontimer + dt / 1.5
 		instructiontimeri = math.floor(instructiontimer%#instructions)+1
 
-		if instructiontimer > 10 then
+		if instructiontimer > 11 then
 			fruitTimer = newRecursionTimer(math.random(2, 4),
 				function()
 					local posx = {4, love.graphics.getWidth() / scale}

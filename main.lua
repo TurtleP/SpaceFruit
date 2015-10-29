@@ -24,6 +24,8 @@ function love.load()
 	--shield charge: line at the bottom of brackets, lshift to activate. It drains slowly over time
 	--health regen: every 10 points
 
+	love.graphics.set3D(true)
+	
 	graphics = {}
 	audio = {}
 
@@ -33,7 +35,7 @@ function love.load()
 
 	stars = {}
 
-	versionstring = "version 1.0"
+	versionstring = "version 1.1"
 
 	graphics["grapepiece"] = love.graphics.newImage("graphics/enemies/grape_piece.png")
 	graphics["health"] = love.graphics.newImage("graphics/hud/Health.png")
@@ -94,7 +96,7 @@ end
 function saveLoadSettings(save)
 	gamescore = 0
 
-	local filepath = "sdmc:/3ds/LovePotion/save.txt"
+	local filepath = "sdmc:/3ds/SpaceFruit/save.txt"
 
 	if save then
 		local file = io.open(filepath, "w")
