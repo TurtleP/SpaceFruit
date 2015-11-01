@@ -31,8 +31,6 @@ function love.load()
 
 	loadFonts()
 
-	loadFonts()
-
 	stars = {}
 
 	versionstring = "version 1.1"
@@ -70,18 +68,15 @@ function love.load()
 		splatimg[k] = love.graphics.newImage("graphics/enemies/3ds/splat" .. k .. ".png")
 	end
 
-	--[[bgm = love.audio.newSource("sound/bgm.ogg", "stream")
-	bgm:setLooping(true)
+	bgm = love.audio.newSource("sound/bgm.wav")
 
-	item = love.audio.newSource("sound/item.ogg")
+	gameoversnd = love.audio.newSource("sound/gameover.wav")
 
-	gameoversnd = love.audio.newSource("sound/gameover.ogg")
-
-	damage = {love.audio.newSource("sound/explosion_1.ogg"), love.audio.newSource("sound/explosion_2.ogg")}
-	shoot = {love.audio.newSource("sound/shoot_1.ogg"), love.audio.newSource("sound/shoot_2.ogg")}
-	fruitboom = {love.audio.newSource("sound/fruit_explode_1.ogg"), love.audio.newSource("sound/fruit_explode_2.ogg"), love.audio.newSource("sound/fruit_explode_3.ogg")}
+	damage = {love.audio.newSource("sound/explosion_1.wav"), love.audio.newSource("sound/explosion_2.wav")}
+	shoot = {love.audio.newSource("sound/shoot_1.wav"), love.audio.newSource("sound/shoot_2.wav")}
+	fruitboom = {love.audio.newSource("sound/fruit_explode_1.wav"), love.audio.newSource("sound/fruit_explode_2.wav"), love.audio.newSource("sound/fruit_explode_3.wav")}
 	
-	mainmenu = love.audio.newSource("sound/title.ogg", "stream")]]
+	mainmenu = love.audio.newSource("sound/title.wav")
 
 	highscore = 0
 	
@@ -149,8 +144,6 @@ function love.update(dt)
 end
 
 function love.draw()
-	--love.graphics.scale(scale, scale)
-
 	if _G[state .. "_draw"] then
 		_G[state .. "_draw"]()
 	end
@@ -184,7 +177,6 @@ end
 
 function loadFonts()
 	hudfont = love.graphics.newFont("graphics/ARCADE_N.TTF", 8)
-	mediumfont = love.graphics.newFont("graphics/ARCADE_N.TTF", 12)
 	menubuttonfont = love.graphics.newFont("graphics/ARCADE_N.TTF", 20)
 end
 

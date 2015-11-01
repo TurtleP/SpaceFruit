@@ -1,5 +1,9 @@
 function game_load()
 
+	if mainmenu:isPlaying() then
+		mainmenu:stop()
+	end
+	
 	paused = false
 
 	objects = {}
@@ -185,6 +189,10 @@ function game_update(dt)
 		v:update(dt)
 	end
 
+	if not bgm:isPlaying() then
+		bgm:play()
+	end
+
 	game_garbageCollect()
 end
 
@@ -205,6 +213,8 @@ function game_draw()
 		v:draw()
 	end
 
+	love.graphics.setDepth(60 / 40)
+
 	love.graphics.setScreen(planetScreen)
 	
 	love.graphics.draw(planetimg, planetX, planetY)
@@ -212,6 +222,8 @@ function game_draw()
 	love.graphics.setScreen(planet2Screen)
 	
 	love.graphics.draw(planetimg2, planet2X, planet2Y)
+
+	love.graphics.setDepth(0)
 	
 	love.graphics.setFont(hudfont)
 
@@ -232,6 +244,8 @@ function game_draw()
 
 	love.graphics.setScreen("top")
 
+	love.graphics.setDepth(60 / 40)
+
 	if paused then
 		love.graphics.setColor(0, 0, 0, 120)
 		love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight())
@@ -246,6 +260,7 @@ function game_draw()
 
 	if gameover then
 		love.graphics.setFont(menubuttonfont)
+		
 		love.graphics.print("GAME OVER", (love.graphics.getWidth() / scale) / 2 - menubuttonfont:getWidth("GAME OVER") / 2, (love.graphics.getHeight() / scale) / 2 - menubuttonfont:getHeight("GAME OVER") / 2)
 		--love.graphics.print("PRESS " .. restart_key .. " TO RESTART", (love.graphics.getWidth() / scale) / 2 - menubuttonfont:getWidth("PRESS " .. restart_key .. " TO RESTART") / 2, (love.graphics.getHeight() / scale) / 2 - menubuttonfont:getHeight("PRESS " .. restart_key .. " TO RESTART") / 2 + 32)
 		love.graphics.setFont(hudfont)
@@ -256,10 +271,12 @@ function game_draw()
 	love.graphics.print("Hi-Score: " .. highscore, (love.graphics.getWidth() / scale) - hudfont:getWidth("Hi-Score: " .. highscore) - 2, 2)
 
 	if not start_game then
-		love.graphics.setFont(mediumfont)
-		love.graphics.print(instructions[instructiontimeri], (love.graphics.getWidth() / scale) / 2 - mediumfont:getWidth(instructions[instructiontimeri]) / 2, (love.graphics.getHeight() / scale) / 2 - mediumfont:getHeight(instructions[instructiontimeri]) / 2)
+		love.graphics.setFont(hudfont)
+		love.graphics.print(instructions[instructiontimeri], (love.graphics.getWidth() / scale) / 2 - hudfont:getWidth(instructions[instructiontimeri]) / 2, (love.graphics.getHeight() / scale) / 2 - hudfont:getHeight(instructions[instructiontimeri]) / 2)
 	end
 	
+	love.graphics.setDepth(0)
+
 	for k, v in ipairs(splats) do
 		v:draw()
 	end
@@ -296,4 +313,5 @@ function game_keyreleased(key)
 end
 
 function game_playsound(audio)
+	audio:play()
 end

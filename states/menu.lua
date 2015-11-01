@@ -1,6 +1,10 @@
 function menu_load(fromGame)
 	state = "menu"
 
+	if bgm:isPlaying() then
+		bgm:stop()
+	end
+
 	for k = 1, 100 do
 		stars[k] = newStar(screens[math.random(#screens)])
 	end
@@ -97,10 +101,13 @@ function menu_update(dt)
 			table.remove(menuFruit, k)
 		end
 	end
+
+	if not mainmenu:isPlaying() then
+		mainmenu:play()
+	end
 end
 
 function menu_draw()
-
 	for k, v in ipairs(stars) do
 		v:draw()
 	end
@@ -125,6 +132,8 @@ function menu_draw()
 
 	love.graphics.setScreen("top")
 
+	love.graphics.setDepth(30 / 40)
+
 	love.graphics.setColor(93, 96, 160)
 	love.graphics.draw(titleimg[1], love.graphics.getWidth() / 2 - titleimg[1]:getWidth() / 2, 48)
 
@@ -135,7 +144,8 @@ function menu_draw()
 		love.graphics.setColor(unpack(colorfade(titletimer[k], 2, fruit_colors[titleColor1[k]], fruit_colors[titleColor2[k]])))
 		love.graphics.draw(fruittitle[k], (love.graphics.getWidth() / 2 - 100) + (k - 1) * 42, 96)
 	end
-		
+
+	love.graphics.setDepth(0)
 end
 
 function menu_main_draw()

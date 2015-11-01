@@ -12,14 +12,16 @@ function newBullet(x, y, rotation, screen, parent)
 	bullet.screen = screen
 	bullet.parent = parent
 
+	bullet.lifetime = 0
+
 	function bullet:update(dt)
 		self.x = self.x + self.speedx * dt
 		self.y = self.y + self.speedy * dt
 
 		if self.x + self.width < 0 then
-			self.remove = true
+			self.x = love.graphics.getWidth()
 		elseif self.x > love.graphics.getWidth() then
-			self.remove = true
+			self.x = 0
 		elseif self.y > love.graphics.getHeight() and self.screen == "top" then
 			if self.x > 40 and self.x < love.graphics.getWidth() - 80 then
 				self.screen = "bottom"
@@ -32,6 +34,20 @@ function newBullet(x, y, rotation, screen, parent)
 				self.x = self.x + 40
 				self.y = love.graphics.getHeight() - self.height
 			end
+		elseif self.y > love.graphics.getHeight() and self.screen == "bottom" then
+			self.y = 0
+			self.screen = "top"
+			self.x = self.x + 40
+		elseif self.y + self.height < 0 and self.screen == "top" then
+			self.y = love.graphics.getHeight()
+			self.screen = "bottom"
+			self.x = self.x - 40
+		end
+
+		if self.lifetime < 2 then
+			self.lifetime = self.lifetime + dt
+		else
+			self.remove = true
 		end
 	end
 

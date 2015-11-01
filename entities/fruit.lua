@@ -50,12 +50,20 @@ function newFruit(x, y, screen)
 					self.screen = "bottom"
 					self.x = self.x - 40
 					self.y = 0
+				elseif self.y < 0 then
+					self.screen = "bottom"
+					self.x = self.x - 40
+					self.y = love.graphics.getHeight()
 				end
 			else
 				if self.y < 0 then
 					self.screen = "top"
 					self.x = self.x + 40
 					self.y = love.graphics.getHeight()
+				elseif self.y > love.graphics.getHeight() then
+					self.screen = "top"
+					self.x = self.x + 40
+					self.y = 0
 				end
 			end
 		end
@@ -82,7 +90,7 @@ function newFruit(x, y, screen)
 	end
 
 	function fruit:destroy(playerHit, player)
-		-- game_playsound(fruitboom[math.random(#fruitboom)])
+		game_playsound(fruitboom[math.random(#fruitboom)])
 
 		if not playerHit then
 			addScore(1)
@@ -157,7 +165,7 @@ function newGrapePiece(x, y, speedx, speedy, screen)
 	end
 
 	function grapepiece:destroy(playerHit)
-		--game_playsound(fruitboom[math.random(#fruitboom)])
+		game_playsound(fruitboom[math.random(#fruitboom)])
 
 		if not playerHit then
 			addScore(2)

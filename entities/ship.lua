@@ -35,7 +35,7 @@ function newShip(x, y, hp, screen)
 	end
 
 	function ship:shoot()
-		--game_playsound(shoot[math.random(#shoot)])
+		game_playsound(shoot[math.random(#shoot)])
 		table.insert(objects.bullet, newBullet(self.x + (self.width / 2) - 0.5, self.y + (self.height / 2) - 3, self.rotation, self.screen, self))
 	end
 
@@ -170,7 +170,7 @@ function newShip(x, y, hp, screen)
 			self.x = ww - 40
 
 			game_randomStaticPlanet()
-		elseif self.y < 0 and self.screen == "bottom" then
+		elseif self.y + self.height < 0 and self.screen == "bottom" then
 			self.y = wh - 40
 			self.x = self.x + 40
 
@@ -179,15 +179,17 @@ function newShip(x, y, hp, screen)
 			game_randomStaticPlanet()
 		end
 
-		if self.y < 0 and self.screen == "top" then
-			self.screen = "bottom"
-			self.y = love.graphics.getHeight()
+		if self.y + self.height < 0 and self.screen == "top" then
 			self.x = self.x - 40
+			self.y = love.graphics.getHeight()
+			self.screen = "bottom"
+			
 			game_randomStaticPlanet()
-		elseif self.y + self.height > love.graphics.getHeight() and self.screen == "bottom" then
+		elseif self.y > love.graphics.getHeight() and self.screen == "bottom" then
 			self.x = self.x + 40
-			self.screen = "top"
 			self.y = 0
+			self.screen = "top"
+			
 			game_randomStaticPlanet()
 		end
 	end
@@ -205,7 +207,7 @@ function newShip(x, y, hp, screen)
 
 			if lifeAmount < 0 then
 				if not self.hud.shieldActive then
-					--game_playsound(damage[math.random(#damage)])
+					game_playsound(damage[math.random(#damage)])
 
 					self.hits = math.min(self.hits + 1, 4)
 					self.invincible = true
