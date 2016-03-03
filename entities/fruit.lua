@@ -17,12 +17,12 @@ function newFruit(x, y)
 	fruit.starty = y
 
 	fruit.speedx = fruitSpeedx[2]
-	if fruit.startx == love.window.getWidth() / scale then
+	if fruit.startx == getWindowWidth() then
 		fruit.speedx = fruitSpeedx[1]
 	end
 
 	fruit.speedy = fruitSpeedy[2]
-	if fruit.starty < (love.window.getHeight() / scale) / 2 then
+	if fruit.starty < getWindowHeight() / 2 then
 		fruit.speedy = fruitSpeedy[1]
 	end
 	
@@ -35,11 +35,11 @@ function newFruit(x, y)
 
 		if self.x + self.width < 0 and self.speedx < 0 then
 			self.remove = true
-		elseif self.x > love.window.getWidth() / scale and self.speedx > 0 then
+		elseif self.x > getWindowWidth() and self.speedx > 0 then
 			self.remove = true
 		elseif self.y + self.height < 0 and self.speedy < 0 then
 			self.remove = true
-		elseif self.y > love.window.getHeight() / scale and self.speedy > 0 then
+		elseif self.y > getWindowHeight() and self.speedy > 0 then
 			self.remove = true
 		end
 	end
@@ -112,11 +112,11 @@ function newGrapePiece(x, y, speedx, speedy, quadi)
 
 		if self.x + self.width < 0 and self.speedx < 0 then
 			self.remove = true
-		elseif self.x > love.window.getWidth() / scale and self.speedx > 0 then
+		elseif self.x > getWindowWidth() and self.speedx > 0 then
 			self.remove = true
 		elseif self.y + self.height < 0 and self.speedy < 0 then
 			self.remove = true
-		elseif self.y > love.window.getHeight() / scale and self.speedy > 0 then
+		elseif self.y > getWindowHeight() and self.speedy > 0 then
 			self.remove = true
 		end
 	end

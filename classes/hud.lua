@@ -1,7 +1,7 @@
 function newHud()
 	local hud = {}
 
-	hud.x = ( love.window.getWidth() / scale ) / 2 - hudfont:getWidth("[Health:") / 2 - 30
+	hud.x = getWindowWidth() * scale / 2 - hudfont:getWidth("[Health:") / 2 - 30 * scale
 	hud.y = 2
 
 	hud.shieldbar = 0
@@ -9,24 +9,26 @@ function newHud()
 	hud.shieldActive = false
 
 	function hud:draw(hearts)
+		love.graphics.setFont(hudfont)
+		
 		love.graphics.setColor(255, 255, 255)
 
-		love.graphics.print("[Health:", self.x, self.y)
+		love.graphics.print("[Health:", self.x, self.y * scale)
 
 		if hearts < 4 then
 			for k = 1, hearts do
-				love.graphics.draw(graphics["health"], ( self.x + hudfont:getWidth("[Health:") + 4 ) + (k - 1) * 10, self.y)
+				love.graphics.draw(graphics["health"], ( self.x + hudfont:getWidth("[Health:") + 4 * scale ) + (k - 1) * 10 * scale, self.y * scale - graphics["health"]:getHeight() / 2, 0, scale, scale)
 			end
 		else
-			love.graphics.draw(graphics["health"], ( self.x + hudfont:getWidth("[Health:") + 1 ), self.y)
-			love.graphics.print(hearts, ( self.x + hudfont:getWidth("[Health:") + 14 ), self.y)
+			love.graphics.draw(graphics["health"], ( self.x + hudfont:getWidth("[Health:") + 1 * scale ), self.y * scale, 0, scale, scale)
+			love.graphics.print(hearts, ( self.x + hudfont:getWidth("[Health:") + 14 * scale), self.y * scale)
 		end
 
-		love.graphics.print("]", self.x + hudfont:getWidth("[Health:") + 37, self.y)
+		love.graphics.print("]", self.x + hudfont:getWidth("[Health:") + 37 * scale, self.y * scale)
 
 		love.graphics.setColor(0, 163, 255)
 
-		love.graphics.rectangle("fill", ( self.x + hudfont:getWidth("[") ), self.y + hudfont:getHeight("["), ( self.shieldbar / self.shieldbarmax ) * 92, 1)
+		love.graphics.rectangle("fill", ( self.x + hudfont:getWidth("[") ), self.y * scale + hudfont:getHeight("["), ( self.shieldbar / self.shieldbarmax ) * 92 * scale, 1 * scale)
 
 		love.graphics.setColor(255, 255, 255)
 	end

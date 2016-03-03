@@ -1,25 +1,24 @@
+
+local setScale = false
 function love.load()
 
 	love.graphics.setDefaultFilter("nearest", "nearest")
-	scale = 2
-	fullscrn = false
 
+	fullscrn = false
 	--shield charge: line at the bottom of brackets, lshift to activate. It drains slowly over time
 	--health regen: every 10 points
 	
 	graphics = {}
 	audio = {}
-
+	
 	requireFiles("") --start recursiveness!
 
-	loadFonts()
-
-	controls = {"d", "a", "w", " ", "lshift"}
+	controls = {"d", "a", "w", "space", "lshift"}
 	quads = {}
 
 	stars = {}
 
-	versionstring = "version 1.2"
+	versionstring = "version 1.3"
 
 	graphics["ship"] = love.graphics.newImage("graphics/ship/space_ship.png")
 	quads["ship"] = {}
@@ -38,7 +37,16 @@ function love.load()
 
 	graphics["health"] = love.graphics.newImage("graphics/hud/Health.png")
 	graphics["hurt"] = love.graphics.newImage("graphics/hud/Health_Broken.png")
-
+	
+	titleimg = {love.graphics.newImage("graphics/title/title.png"), love.graphics.newImage("graphics/title/titlebottom.png")}
+	
+	local chars = {"F", "R", "U", "I", "T"}
+	
+	fruittitle = {}
+	for k = 1, #chars do
+		fruittitle[k] = love.graphics.newImage("graphics/title/" .. chars[k] .. ".png")
+	end
+	
 	graphics["splat"] = love.graphics.newImage("graphics/enemies/explosion_quad.png")
 	quads["splat"] = {}
 	for k = 1, 6 do
@@ -78,10 +86,6 @@ function love.load()
 	}
 
 	love.window.setTitle("Space Fruit")
-	love.window.setMode(800, 600, {vsync = true})
-
-	love.graphics.setFont(title)
-	love.graphics.setPointStyle("rough")
 
 	bgm = love.audio.newSource("sound/bgm.ogg", "stream")
 	bgm:setLooping(true)
@@ -102,8 +106,125 @@ function love.load()
 
 	gamescore = 0
 	highscore = 0
+	
+	if love.system.getOS() == "Android" then
+		require 'classes/gyro'
 
-	menu_load()
+		gyroController = newGyro(
+		function(self, value)
+			if not objects then
+				return
+			end
+
+			local deadZone = 0.12
+			local player = objects["ship"][1]
+
+			if not player then
+				return
+			end
+
+			if value > deadZone then
+				player:rotateAdd(true)
+				player:stopRotateLeft()
+			elseif value >= 0 and value < deadZone then
+				player:stopRotateLeft()
+				player:stopRotateRight()
+			elseif value < -deadZone then
+				player:rotateAdd(false)
+				player:stopRotateRight()
+			elseif value > -deadZone and value <= 0 then
+				player:stopRotateLeft()
+				player:stopRotateRight()
+			end
+		end, 
+		
+		function(self, value)
+			if not objects then
+				return
+			end
+
+			local deadZone = 0.7
+			local player = objects["ship"][1]
+
+			if not player then
+				return
+			end
+			
+			if value < deadZone then
+				player:moveForward()
+			else 
+				player:stopMovingForward()
+			end
+		end,
+
+		nil, 
+		
+		function(self, id, x, y, pressure)
+			self.taps = self.taps + 1
+		end,
+		
+		function(self, id, x, y, pressure)
+			self.taps = 0
+			self.tapTimer = 0
+
+			if not objects then
+				return
+			end
+
+			local player = objects["ship"][1]
+			
+			if not player then
+				return
+			end
+			
+			player:shoot()
+		end,
+
+		{
+			taps = 0,
+			tapTimer = 0
+		},
+
+		function(self, dt)
+			if not objects then
+				return
+			end
+
+			local player = objects["ship"][1]
+
+			if not player then
+				return
+			end
+
+			if self.taps == 1 then
+				self.tapTimer = self.tapTimer + dt
+
+				if self.tapTimer > 3 then
+					if paused then
+						menu_load()
+					end
+				elseif self.tapTimer > 1 then
+					if not paused then
+						player:addShield()
+					end
+				end
+
+				self.taps = 0
+				self.tapTimer = 0
+			else
+				self.taps = 0
+				self.tapTimer = 0
+			end
+		end)
+		
+		mobileMode = true
+	else
+		setFullscreen(false)
+		
+		love.window.setFullscreen(true, "desktop")
+	end
+	
+	setFullscreen(true)
 end
 
 function defaultData()
@@ -112,10 +233,26 @@ function defaultData()
 	fullscrn = false
 	highscore = 0
 	controls = {"d", "a", "w", " ", "lshift"}
+	
+	setScale = false
 end
 
 function love.focus(focus)
 	paused = not focus
+	
+	if not focus then
+		if mobileMode then
+			if not setScale then
+				setFullscreen(true)
+			end
+		end
+	end
+end
+
+function love.joystickadded(joy)
+	if joy:getName() == "Android Accelerometer" then
+		joystick = joy
+	end
 end
 
 function saveLoadSettings(load, onlyHigh)
@@ -162,19 +299,11 @@ function saveLoadSettings(load, onlyHigh)
 					musicOn = false
 				end
 
-				if arg[3] == "true" then
-					fullscrn = true
-				else
-					fullscrn = false
-				end
-
 				highscore = tonumber(arg[4])
 
 				for k = 1, 4 do
 					controls[k] = arg[k+4]
 				end
-
-				setFullscreen(fullscrn)
 			else
 				highscore = tonumber(arg[4])
 			end
@@ -196,51 +325,103 @@ end
 
 function love.update(dt)
 	dt = math.min(0.1666667, dt)
-
+	
 	if _G[state .. "_update"] then
 		_G[state .. "_update"](dt)
 	end
 
-	if game_joystick then
-		if state ~= "game" then
-			local horAxis = game_joystick:getAxis(1)
-			local verAxis = game_joystick:getAxis(2)
+	if gyroController then
+		gyroController:axis(1, joystick:getAxis(1))
 
-			if horAxis > 0.2 then
-				love.mouse.setX(love.mouse.getX() + 180 * scale * dt)
-			end
+		gyroController:axis(2, joystick:getAxis(2))
 
-			if horAxis < -0.2 then
-				love.mouse.setX(love.mouse.getX() - 180 * scale * dt)
-			end
-
-			if verAxis > 0.2 then
-				love.mouse.setY(love.mouse.getY() + 180 * scale * dt)
-			end
-
-			if verAxis < -0.2 then
-				love.mouse.setY(love.mouse.getY() - 180 * scale * dt)
-			end
-		else
-			return
-		end
+		gyroController:update(dt)
 	end
 end
 
 function love.draw()
+	love.graphics.push()
+	
+	if missingX and missingX > 0 and missingY and missingY > 0 then
+		love.graphics.translate(missingX, missingY)
+	end
+	
 	love.graphics.scale(scale, scale)
-
+	
 	if _G[state .. "_draw"] then
 		_G[state .. "_draw"]()
+	end
+
+	love.graphics.pop()
+	
+	if state == "menu" then
+		if menuGUI[menustate] then
+			for i, v in pairs(menuGUI[menustate]) do
+				v:draw()
+			end
+		end
+		
+		love.graphics.setColor(255, 255, 255)
+		love.graphics.setFont(hudfont)
+		love.graphics.print(versionstring, 1, getWindowHeight() * scale - hudfont:getHeight(versionstring))
+
+		if menustate == "credits" then
+			love.graphics.setScissor(0, 120 * scale, getWindowWidth() * scale, getWindowHeight() * scale / 2)
+
+			local currFont = love.graphics.getFont()
+
+			love.graphics.setFont(hudfont)
+			for k = 1, #credits do
+				love.graphics.print(credits[k], (getWindowWidth() * scale) / 2 - hudfont:getWidth(credits[k]) / 2, (160 + (k - 1) * 16) * scale - creditsscroll * scale)
+			end
+
+			love.graphics.setFont(currFont)
+
+			love.graphics.setScissor()
+		end
+	elseif state == "game" then
+		love.graphics.setFont(hudfont)
+	
+		love.graphics.print("Score: " .. gamescore, 2 * scale, 2 * scale)
+
+		pauseButton:draw()
+		
+		if not start_game then
+			love.graphics.setFont(menubuttonfont)
+			love.graphics.print(instructions[instructiontimeri], getWindowWidth() * scale / 2 - menubuttonfont:getWidth(instructions[instructiontimeri]) / 2, getWindowHeight() * scale / 2 - menubuttonfont:getHeight(instructions[instructiontimeri]) / 2)
+		end
+	
+		if paused then
+			love.graphics.setColor(255, 255, 255)
+			love.graphics.setFont(menubuttonfont)
+			love.graphics.print("Game Paused", getWindowWidth() * scale / 2 - menubuttonfont:getWidth("Game Paused") / 2, getWindowHeight() * scale / 2 - menubuttonfont:getHeight("Game Paused") / 2)
+			love.graphics.setFont(hudfont)
+			love.graphics.print("(Hold to return to the menu)", getWindowWidth() * scale / 2 - hudfont:getWidth("(Hold to return to the menu)") / 2, getWindowHeight() * scale / 2 + menubuttonfont:getHeight("Game Paused") / 2 + hudfont:getHeight("(Hold to return to the menu)"))
+		end
+
+		if gameover then
+			love.graphics.setFont(menubuttonfont)
+			love.graphics.print("Game Over!", getWindowWidth() * scale / 2 - menubuttonfont:getWidth("Game Over!") / 2, getWindowHeight() * scale / 2 - menubuttonfont:getHeight("Game Over!") / 2)
+			love.graphics.setFont(hudfont)
+		end
+		
+		if objects["ship"][1] then
+			objects["ship"][1].hud:draw(objects["ship"][1].hp)
+		end
+		
+		if paused then
+			love.graphics.setColor(0, 0, 0, 120)
+			love.graphics.rectangle("fill", 0, 0, getWindowWidth() * scale, getWindowHeight() * scale)
+		end
 	end
 end
 
 function getWindowWidth()
-	return love.window.getWidth() / scale
+	return love.graphics.getWidth() / scale
 end
 
 function getWindowHeight()
-	return love.window.getHeight() / scale
+	return love.graphics.getHeight() / scale
 end
 
 function love.keypressed(key)
@@ -276,41 +457,23 @@ function requireFiles(path)
 end
 
 function loadFonts()
-	title = love.graphics.newFont("graphics/ARCADE_N.TTF", 32)
-	titleHuge = love.graphics.newFont("graphics/ARCADE_N.TTF", 40)
-	hudfont = love.graphics.newFont("graphics/ARCADE_N.TTF", 8)
-	mediumfont = love.graphics.newFont("graphics/ARCADE_N.TTF", 12)
-	menubuttonfont = love.graphics.newFont("graphics/ARCADE_N.TTF", 16)
+	hudfont = love.graphics.newFont("graphics/PixelLCD.ttf", 7.5 * scale)
+	menubuttonfont = love.graphics.newFont("graphics/PixelLCD.ttf", 15 * scale)
 end
 
-function setFullscreen(fs)
+function setFullscreen(enable)
+	width, height = love.window.getDesktopDimensions()
+		
+	currentWidth, currentHeight = love.graphics.getDimensions( )
 
-	if not fs then
-		fullscrn = not fullscrn
-	else
-		fullscrn = fs
-	end
-
-	if fullscrn then
-		w, h = love.window.getDesktopDimensions(1)
-		love.window.setMode(w, h, {fullscreen = true, vsync = true})
-
-		scale = h / 300
-
-		loadFonts()
-	else
-		love.window.setMode(800, 600, {fullscreen = false, vsync = true})
-		scale = 2
-	end
-
-	if state then
-		if state ~= "menu" then
-			_G[state .. "_load"]()
-		else
-			_G[state .. "_load"]()
-			menustate = "settings"
-		end
-	end
+	scale = math.floor( math.max( (width / 400), (height / 300) ) )
+	
+	missingX = ( (width / 2) - (400 * scale) / 2)
+	missingY = ( (height / 2) - (300 * scale) / 2)
+	
+	loadFonts()
+	
+	menu_load()
 end
 
 function string:split(delimiter) --Not by me
@@ -324,48 +487,4 @@ function string:split(delimiter) --Not by me
 	end
 	table.insert( result, string.sub( self, from   ) )
 	return result
-end
-
-function love.joystickadded(joy)
-	if joy:getID() == 1 then
-		game_joystick = joy
-	end
-end
-
-function love.gamepadpressed( joystick, button )
-	if joystick == game_joystick then
-		if button == "a" then
-			if state ~= "game" then
-				love.mousepressed(love.mouse.getX(), love.mouse.getY(), "l")
-			end
-		end
-		
-		if state == "game" then
-			if objects["ship"][1] then
-				objects["ship"][1]:gamePad(button)
-			end
-		end
-
-		if button == "start" then
-			if gameover then
-				game_load()
-			else
-				paused = not paused
-			end
-		end
-	end
-end
-
-function love.joystickaxis( joystick, axis, value )
-	if joystick == game_joystick then
-		if state == "game" then
-			game_joystickaxis(joystick, axis, value)
-		end
-	end
-end
-
-function love.joystickremoved(joystick)
-	if joystick == game_joystick then
-		game_joystick = nil
-	end
 end

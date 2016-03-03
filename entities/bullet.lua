@@ -17,9 +17,9 @@ function newBullet(x, y, rotation, parent)
 
 		if self.x < 0 then
 			self.remove = true
-		elseif self.x > love.window.getWidth() / scale then
+		elseif self.x > getWindowWidth() then
 			self.remove = true
-		elseif self.y > love.window.getHeight() / scale then
+		elseif self.y > getWindowHeight() then
 			self.remove = true
 		elseif self.y + self.height < 0 then
 			self.remove = true

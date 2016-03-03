@@ -27,8 +27,6 @@ function newShip(x, y, hp)
 		if self.drawable then
 			love.graphics.draw(graphics["ship"], self.quad[self.quadi][self.hits], self.x + 20, self.y + 20, self.rotation, 1, 1, self.width / 2, self.height / 2)
 		end
-
-		self.hud:draw(self.hp)
 	end
 
 	function ship:shoot()
@@ -107,9 +105,7 @@ function newShip(x, y, hp)
 	end
 
 	function ship:move(key)
-		print(controls[4])
 		if key == controls[4] then
-			print("!")
 			self:shoot()
 		end
 
@@ -135,63 +131,22 @@ function newShip(x, y, hp)
 		end
 	end
 
-	function ship:stopMove(key)
-		if key == controls[2] then
-			self.rotationleft = false
-		end
-
-		if key == controls[1] then
-			self.rotationright = false
-		end
-
-		if key == controls[3] then
-			self.moveForth = false
-			self.shouldMove = false
-		end
+	function ship:stopRotateLeft()
+		self.rotationleft = false
 	end
 
-	function ship:joystickAxis(joystick, axis, value)
-		if joystick == game_joystick then
-			if axis == 1 then
-				if value > 0.2 then
-					self.rotationright = true
-				elseif value < 0.2 and value >= 0 then
-					self.rotationright = false
-				end
-			end
-
-			if axis == 1 then
-				if value < -0.2 then
-					self.rotationleft = true
-				elseif value > -0.2 and value <= 0 then
-					self.rotationleft = false
-				end
-			end
-
-			if axis == 2 then
-				if value < -0.2 then
-					self:moveForward()
-				elseif value > -0.2 and value <= 0 then
-					self.moveForth = false
-					self.shouldMove = false
-				end
-			end
-		end
+	function ship:stopRotateRight()
+		self.rotationright = false
 	end
-
-	function ship:gamePad(button)
-		if button == "a" or button == "x" then
-			self:shoot()
-		end
-
-		if button == "y" or button == "b" then
-			self:addShield()
-		end
+	
+	function ship:stopMovingForward()
+		self.moveForth = false
+		self.shouldMove = false
 	end
 
 	function ship:checkWarp()
-		local ww = love.window.getWidth() / scale
-		local wh = love.window.getHeight() / scale
+		local ww = getWindowWidth()
+		local wh = getWindowHeight()
 
 		if self.x + self.width > ww then
 			self.x = 0
