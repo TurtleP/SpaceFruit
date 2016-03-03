@@ -17,7 +17,7 @@ function game_load()
 	splats = {}
 	backgroundImages = {}
 
-	objects["ship"][1] = newShip( getWindowWidth() / 2 - 20, getWindowHeight() / 2 - 20, 3)
+	objects["ship"][1] = newShip( (love.window.getWidth() / scale) / 2 - 20, (love.window.getHeight() / scale ) / 2 - 20, 3)
 
 	local keys = {}
 	for k, v in pairs(controls) do
@@ -28,18 +28,26 @@ function game_load()
 		end
 	end
 
+	if game_joystick then
+		keys[1] = "Analog Left"
+		keys[2] = "Right"
+		keys[3] = "Up"
+		keys[4] = "A or X"
+		keys[5] = "B or Y"
+	end
+
 	instructions = 
 	{
-		"Tilt the device to turn",
-		"Short tap to shoot",
-		"Long tap to use the shield\n(max blue bar)",
-		"Shoot as many fruits\nas possible!",
-		"Ready?",
+		keys[1] .. ", " .. keys[2] .. ",\nand " .. keys[3] .. " to move",
+		keys[4] .. " TO SHOOT",
+		"ESCAPE TO PAUSE",
+		keys[5] .. " TO ACTIVATE\nSHIELD",
+		"SHOOT AS MANY FRUITS\nAS YOU CAN!",
+		"READY?",
 		"3..",
 		"2..",
 		"1..",
-		"Go!",
-		""
+		"GO!!"
 	}
 
 	instructiontimer = 0
@@ -61,36 +69,25 @@ function game_load()
 	end
 
 	timeout = 0
-	
-	pauseButton = newGUI("button", getWindowWidth() * scale - hudfont:getWidth("[Pause]") - 2 * scale, 4, "[Pause]", 
-		function() 
-			if start_game then
-				paused = not paused 
-			end
-		end
-	)
-
-	pauseButton.font = hudfont
 end
 
 function game_randomStaticPlanet()
 	local a = love.math.random(#staticBGs)
-	planetX = love.math.random(0, getWindowWidth() - 50)
-	planetY = love.math.random(0, getWindowHeight() - 50)
+	planetX = love.math.random(0, (love.window.getWidth() / scale) - 50)
+	planetY = love.math.random(0, (love.window.getHeight() / scale) - 50)
 	planetimg = staticBGs[a]
 
 	local b = love.math.random(#staticBGs)
 	while b == a do
 		b = love.math.random(#staticBGs)
 	end
-	planet2X = love.math.random(0, getWindowWidth() - 50)
-	planet2Y = love.math.random(0, getWindowHeight() - 50)
+	planet2X = love.math.random(0, (love.window.getWidth() / scale) - 50)
+	planet2Y = love.math.random(0, (love.window.getHeight() / scale) - 50)
 	planetimg2 = staticBGs[b]
-	
-	for k = 1, 100 do
-		stars[k] = {love.math.random(4, getWindowWidth() - 8), love.math.random(4, getWindowHeight() - 8)}
-		starSizes[k] = love.math.random(1, 3)
-	end
+
+	objects["fruit"] = {}
+	splats = {}
+	powerups = {}
 end
 
 function game_garbageCollect()
@@ -150,14 +147,14 @@ function game_update(dt)
 	end
 
 	if not start_game then
-		if instructiontimeri < 10 then
-			instructiontimer = instructiontimer + dt / 2
-			instructiontimeri = math.floor(instructiontimer%#instructions)+1
-		else
+		instructiontimer = instructiontimer + dt / 1.5
+		instructiontimeri = math.floor(instructiontimer%#instructions)+1
+
+		if instructiontimer > 10 then
 			fruitTimer = newRecursionTimer(love.math.random(2, 4),
 				function()
-					local posx = {4, getWindowWidth()}
-					local posy = love.math.random(4, getWindowHeight())
+					local posx = {4, love.window.getWidth() / scale}
+					local posy = love.math.random(4, love.window.getHeight() / scale)
 
 					table.insert(objects["fruit"], newFruit(posx[love.math.random(#posx)], posy))
 				end
@@ -168,6 +165,10 @@ function game_update(dt)
 		end
 	else
 		fruitTimer:update(dt)
+	end
+
+	for k, v in ipairs(stars) do
+		v:update(dt)
 	end
 
 	for k, v in ipairs(splats) do
@@ -186,8 +187,11 @@ function addScore(points)
 end
 
 function game_draw()
-	love.graphics.setColor(255, 255, 255)
-	
+
+	for k, v in ipairs(stars) do
+		v:draw()
+	end
+
 	love.graphics.draw(planetimg, planetX, planetY)
 
 	love.graphics.draw(planetimg2, planet2X, planet2Y)
@@ -199,6 +203,7 @@ function game_draw()
 			if w.draw then
 				w:draw()
 			end
+			--love.graphics.rectangle("line", w.x, w.y, w.width, w.height)
 		end
 	end
 
@@ -208,6 +213,23 @@ function game_draw()
 		end
 	end
 
+	if paused then
+		love.graphics.setColor(0, 0, 0, 120)
+		love.graphics.rectangle("fill", 0, 0, love.window.getWidth(), love.window.getHeight())
+
+		love.graphics.setColor(255, 255, 255)
+		love.graphics.setFont(menubuttonfont)
+		love.graphics.print("GAME PAUSED", (love.window.getWidth() / scale) / 2 - menubuttonfont:getWidth("GAME PAUSED") / 2, (love.window.getHeight() / scale) / 2 - menubuttonfont:getHeight("GAME PAUSED") / 2)
+		love.graphics.setFont(hudfont)
+	end
+
+	if gameover then
+		love.graphics.setFont(menubuttonfont)
+		love.graphics.print("GAME OVER", (love.window.getWidth() / scale) / 2 - menubuttonfont:getWidth("GAME OVER") / 2, (love.window.getHeight() / scale) / 2 - menubuttonfont:getHeight("GAME OVER") / 2)
+		--love.graphics.print("PRESS " .. restart_key .. " TO RESTART", (love.window.getWidth() / scale) / 2 - menubuttonfont:getWidth("PRESS " .. restart_key .. " TO RESTART") / 2, (love.window.getHeight() / scale) / 2 - menubuttonfont:getHeight("PRESS " .. restart_key .. " TO RESTART") / 2 + 32)
+		love.graphics.setFont(hudfont)
+	end
+
 	for k, v in ipairs(splats) do
 		v:draw()
 	end
@@ -215,12 +237,17 @@ function game_draw()
 	for k, v in pairs(backgroundImages) do
 		v:draw()
 	end
+
+	love.graphics.print("Score: " .. gamescore, 2, 2)
+
+	love.graphics.print("Hi-Score: " .. highscore, (love.window.getWidth() / scale) - hudfont:getWidth("Hi-Score: " .. highscore) - 2, 2)
+
 	
-	love.graphics.setColor(255, 255, 255)
-	for k = 1, #starSizes do
-		love.graphics.setPointSize(starSizes[k])
+
+	if not start_game then
+		love.graphics.setFont(mediumfont)
+		love.graphics.print(instructions[instructiontimeri], (love.window.getWidth() / scale) / 2 - mediumfont:getWidth(instructions[instructiontimeri]) / 2, (love.window.getHeight() / scale) / 2 - mediumfont:getHeight(instructions[instructiontimeri]) / 2)
 	end
-	love.graphics.points(stars)
 end
 
 function game_keypressed(key)
@@ -237,19 +264,15 @@ function game_keypressed(key)
 	end
 end
 
-function game_mousepressed(x, y, button)
-	pauseButton:mousepressed(x, y, button)
+function game_joystickaxis(joy, axis, value)
+	if objects["ship"][1] then
+		objects["ship"][1]:joystickAxis(joy, axis, value)
+	end
 end
 
 function game_keyreleased(key)
 	if objects["ship"][1] then
-		if key == controls[1] then
-			objects["ship"][1]:stopRotateRight()
-		elseif key == controls[2] then
-			objects["ship"][1]:stopRotateLeft()
-		elseif key == controls[3] then
-			objects["ship"][1]:stopMovingForward()
-		end
+		objects["ship"][1]:stopMove(key)
 	end
 end
 
