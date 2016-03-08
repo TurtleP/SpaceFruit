@@ -1,8 +1,7 @@
-# Space_Fruit
+# Space Fruit
 A Hackathon 2015 game made by four friends
 
-# How to compile
-Simply download this and rename the zip file to .love
-(make sure the directory reads as space_fruit/ and not space_fruit/space_fruit)
+# What is this?
+This is a branch soley dedicated to porting the original PC version of Space Fruit to mobile devices. New features present in this version will not take effect on the PC version.
 
 
