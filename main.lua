@@ -1,25 +1,23 @@
+
+local setScale = false
+io.stdout:setvbuf("no")
 function love.load()
 
 	love.graphics.setDefaultFilter("nearest", "nearest")
-	scale = 2
-	fullscrn = false
 
+	fullscrn = false
 	--shield charge: line at the bottom of brackets, lshift to activate. It drains slowly over time
 	--health regen: every 10 points
 	
 	graphics = {}
 	audio = {}
-
+	
 	requireFiles("") --start recursiveness!
 
-	loadFonts()
-
-	controls = {"d", "a", "w", " ", "lshift"}
+	controls = {"d", "a", "w", "space", "lshift"}
 	quads = {}
 
-	stars = {}
-
-	versionstring = "version 1.2"
+	versionstring = "version 1.3"
 
 	graphics["ship"] = love.graphics.newImage("graphics/ship/space_ship.png")
 	quads["ship"] = {}
@@ -30,15 +28,35 @@ function love.load()
 		end
 	end
 
+	graphics["shield"] = love.graphics.newImage("graphics/ship/shield.png")
+	quads["shield"] = {}
+	for k = 1, 10 do
+		quads["shield"][k] = love.graphics.newQuad((k - 1) * 40, 0, 40, 40, graphics["shield"]:getWidth(), graphics["shield"]:getHeight())
+	end
+
 	graphics["fruit"] = love.graphics.newImage("graphics/enemies/fruits.png")
 	quads["fruit"] = {}
 	for k = 1, graphics["fruit"]:getWidth()/23 do
 		quads["fruit"][k] = love.graphics.newQuad((k-1)*23, 0, 22, 22, graphics["fruit"]:getWidth(), graphics["fruit"]:getHeight())
 	end
 
-	graphics["health"] = love.graphics.newImage("graphics/hud/Health.png")
-	graphics["hurt"] = love.graphics.newImage("graphics/hud/Health_Broken.png")
-
+	graphics["health"] = love.graphics.newImage("graphics/hud/health.png")
+	quads["health"] = {}
+	for y = 1, 2 do
+		for x = 1, 2 do
+			table.insert(quads["health"], love.graphics.newQuad((x - 1) * 8, (y - 1) * 8, 8, 8, 16, 16))
+		end
+	end
+	
+	titleimg = love.graphics.newImage("graphics/title/title.png")
+	
+	local chars = {"F", "R", "U", "I", "T"}
+	
+	fruittitle = {}
+	for k = 1, #chars do
+		fruittitle[k] = love.graphics.newImage("graphics/title/" .. chars[k] .. ".png")
+	end
+	
 	graphics["splat"] = love.graphics.newImage("graphics/enemies/explosion_quad.png")
 	quads["splat"] = {}
 	for k = 1, 6 do
@@ -53,8 +71,31 @@ function love.load()
 
 	graphics["grapepiece"] = love.graphics.newImage("graphics/enemies/grape_piece.png")
 
-	staticBGs = {love.graphics.newImage("graphics/bg/moon.png"), love.graphics.newImage("graphics/bg/planet.png"), love.graphics.newImage("graphics/bg/sun.png"), love.graphics.newImage("graphics/bg/satalite.png"), 
-				love.graphics.newImage("graphics/bg/blackhole.png"), love.graphics.newImage("graphics/bg/astroid_1.png"), love.graphics.newImage("graphics/bg/astroid_2.png"), love.graphics.newImage("graphics/bg/earth.png")}
+	asteroidGraphics = 
+	{
+		love.graphics.newImage("graphics/bg/astroid_1.png"), 
+		love.graphics.newImage("graphics/bg/astroid_2.png"),
+	}
+
+	asteroidSounds = 
+	{
+		love.audio.newSource("sound/asteroid.ogg"),
+		love.audio.newSource("sound/asteroid2.ogg")
+	}
+
+	backgroundImages = 
+	{
+		love.graphics.newImage("graphics/bg/moon.png"), 
+		love.graphics.newImage("graphics/bg/planet.png"), 
+		{}, 
+		love.graphics.newImage("graphics/bg/satalite.png"), 
+		love.graphics.newImage("graphics/bg/blackhole.png"), 
+		love.graphics.newImage("graphics/bg/earth.png")
+	}
+
+	for k = 1, 4 do
+		table.insert(backgroundImages[3], love.graphics.newImage("graphics/bg/sun" .. k .. ".png"))
+	end
 
 	bulletimg = love.graphics.newImage("graphics/ship/bullet.png")
 
@@ -78,10 +119,6 @@ function love.load()
 	}
 
 	love.window.setTitle("Space Fruit")
-	love.window.setMode(800, 600, {vsync = true})
-
-	love.graphics.setFont(title)
-	love.graphics.setPointStyle("rough")
 
 	bgm = love.audio.newSource("sound/bgm.ogg", "stream")
 	bgm:setLooping(true)
@@ -98,12 +135,116 @@ function love.load()
 
 	love.window.setIcon(love.image.newImageData("graphics/ship/ship.png"))
 
-	saveLoadSettings(true)
+	json = require 'libraries/json'
 
 	gamescore = 0
 	highscore = 0
+	
+	if love.system.getOS() == "Android" or love.system.getOS() == "iOS" then
+		require 'mobile/touchcontrol'
+		require 'mobile/analog'
+		require 'mobile/gyro'
 
-	menu_load()
+		gyroController = newGyro(
+		
+		nil,
+
+		nil,
+
+		nil, 
+		
+		function(self, id, x, y, pressure)
+			if analogStick then
+				if id ~= analogStick.held then
+					self.taps = self.taps + 1
+				end
+			end
+		end,
+		
+		function(self, id, x, y, pressure)
+			self.tapTimer = 0
+
+			if not objects then
+				return
+			end
+
+			local player = objects["ship"][1]
+			
+			if not player then
+				return
+			end
+
+			if id ~= analogStick.lastHeld then
+				if self.shootingTimer == 0 then	
+					player:shoot()
+
+					self.shootingTimer = 1/4
+				end
+			end
+		end,
+
+		{
+			taps = 0,
+			tapTimer = 0,
+			shootingTimer = 1/4
+		},
+
+		function(self, dt)
+			if not objects then
+				return
+			end
+
+			local player = objects["ship"][1]
+
+			if not player then
+				return
+			end
+
+			self.shootingTimer = math.max(self.shootingTimer - dt, 0)
+
+			if self.taps == 1 then
+				self.tapTimer = self.tapTimer + dt
+
+				if self.tapTimer > 3 then
+					if paused then
+						menu_load()
+					
+						self.taps = 0
+						self.tapTimer = 0
+					end
+				elseif self.tapTimer > 1 then
+					if not paused then
+						player:addShield()
+					
+						self.taps = 0
+						self.tapTimer = 0
+					end
+				end
+			else
+				self.taps = 0
+				self.tapTimer = 0
+			end
+		end)
+		
+		mobileMode = true
+
+		setFullscreen()
+	else
+		love.window.setFullscreen(true, "desktop")
+
+		setFullscreen()
+
+		--[[
+		scale = 2
+		loadFonts()
+		menu_load()
+		love.audio.setVolume(0)
+		--]]
+	end
+	
+	firstLoad = true
+	--setFullscreen(true)
+	
 end
 
 function defaultData()
@@ -111,136 +252,69 @@ function defaultData()
 	musicOn = true
 	fullscrn = false
 	highscore = 0
-	controls = {"d", "a", "w", " ", "lshift"}
+	controls = {"d", "a", "w", "space", "lshift"}
+	
+	setScale = false
 end
 
 function love.focus(focus)
 	paused = not focus
+	
+	if not focus then
+		if mobileMode then
+			if not setScale then
+				setFullscreen(true)
+			end
+		end
+	end
 end
 
-function saveLoadSettings(load, onlyHigh)
-	if not load then
+function love.joystickadded(joy)
+	if joy:getName() == "Android Accelerometer" then
+		joystick = joy
+	end
+end
 
-		local s = highscore
-		if gamescore > highscore then
-			s = gamescore
-		end
-
-		datastring = tostring(soundOn) .. ";" .. tostring(musicOn) .. ";" .. tostring(fullscrn) .. ";" .. s .. ";" .. controls[1] .. ";" .. controls[2] .. ";" .. controls[3] .. ";" .. controls[4] .. ";" .. controls[5] .. ";"
-
-		love.filesystem.write("data.txt", datastring)
-	else
-
-		if load ~= "del" then
-
-			if not love.filesystem.exists("data.txt") then
-				defaultData()
-
-				return
-			end
-
-			local data = love.filesystem.read("data.txt")
-
-			local arg = data:split(";")
-
-			if #arg ~= 9 then
-				print("Save Data is corrupt! Deleting..")
-				love.filesystem.remove("data.txt")
-				saveLoadSettings(true)
-			end
-
-			if not onlyHigh then
-				if arg[1] == "true" then
-					soundOn = true
-				else
-					soundOn = false
-				end
-
-				if arg[2] == "true" then
-					musicOn = true
-				else
-					musicOn = false
-				end
-
-				if arg[3] == "true" then
-					fullscrn = true
-				else
-					fullscrn = false
-				end
-
-				highscore = tonumber(arg[4])
-
-				for k = 1, 4 do
-					controls[k] = arg[k+4]
-				end
-
-				setFullscreen(fullscrn)
-			else
-				highscore = tonumber(arg[4])
+function saveLoadSettings(load)
+	if load then
+		if not love.filesystem.isFile("save.txt") then
+			highscores = {}
+			for k = 1, 5 do
+				highscores[k] = {rank = k, name = "????", score = "????"}
 			end
 		else
-			if love.filesystem.exists("data.txt") then
-				love.filesystem.remove("data.txt")
-			end
-
-			if love.filesystem.exists("highscore.txt") then
-				love.filesystem.remove("highscore.txt")
-			end
-
-			soundOn = true
-			musicOn = true
+			highscores = json:decode(love.filesystem.read("save.txt"))
+			firstLoad = false
 		end
-
+	else
+		love.filesystem.write("save.txt", json:encode_pretty(highscores))
 	end
 end
 
 function love.update(dt)
 	dt = math.min(0.1666667, dt)
-
+	
 	if _G[state .. "_update"] then
 		_G[state .. "_update"](dt)
 	end
 
-	if game_joystick then
-		if state ~= "game" then
-			local horAxis = game_joystick:getAxis(1)
-			local verAxis = game_joystick:getAxis(2)
-
-			if horAxis > 0.2 then
-				love.mouse.setX(love.mouse.getX() + 180 * scale * dt)
-			end
-
-			if horAxis < -0.2 then
-				love.mouse.setX(love.mouse.getX() - 180 * scale * dt)
-			end
-
-			if verAxis > 0.2 then
-				love.mouse.setY(love.mouse.getY() + 180 * scale * dt)
-			end
-
-			if verAxis < -0.2 then
-				love.mouse.setY(love.mouse.getY() - 180 * scale * dt)
-			end
-		else
-			return
-		end
+	if gyroController then
+		gyroController:update(dt)
 	end
 end
 
 function love.draw()
-	love.graphics.scale(scale, scale)
-
 	if _G[state .. "_draw"] then
 		_G[state .. "_draw"]()
 	end
 end
 
 function getWindowWidth()
-	return love.window.getWidth() / scale
+	return love.graphics.getWidth() / scale
 end
 
 function getWindowHeight()
-	return love.window.getHeight() / scale
+	return love.graphics.getHeight() / scale
 end
 
 function love.keypressed(key)
@@ -255,6 +329,12 @@ function love.mousepressed(x, y, button)
 	end
 end
 
+function love.textinput(t)
+	if _G[state .. "_textinput"] then
+		_G[state .. "_textinput"](t)
+	end
+end
+
 function love.keyreleased(key)
 	if _G[state .. "_keyreleased"] then
 		_G[state .. "_keyreleased"](key)
@@ -265,52 +345,41 @@ function requireFiles(path)
 	local f = love.filesystem.getDirectoryItems(path)
 
 	for k = 1, #f do
-		if love.filesystem.isDirectory(f[k]) then
+		if love.filesystem.isDirectory(f[k]) and f[k] ~= "mobile" then
 			requireFiles(f[k] .. "/")
 		else
 			if f[k]:sub(-4) == ".lua" then
-				require(path .. f[k]:gsub(".lua", ""))
+				if f[k] ~= "json.lua" then
+					require(path .. f[k]:gsub(".lua", ""))
+				end
 			end
 		end
 	end
 end
 
 function loadFonts()
-	title = love.graphics.newFont("graphics/ARCADE_N.TTF", 32)
-	titleHuge = love.graphics.newFont("graphics/ARCADE_N.TTF", 40)
-	hudfont = love.graphics.newFont("graphics/ARCADE_N.TTF", 8)
-	mediumfont = love.graphics.newFont("graphics/ARCADE_N.TTF", 12)
-	menubuttonfont = love.graphics.newFont("graphics/ARCADE_N.TTF", 16)
+	hudfont = love.graphics.newFont("graphics/PixelLCD.ttf", 7.5 * scale)
+	menubuttonfont = love.graphics.newFont("graphics/PixelLCD.ttf", 15 * scale)
 end
 
-function setFullscreen(fs)
+function setFullscreen(enable)
+	width, height = love.window.getDesktopDimensions()
+		
+	currentWidth, currentHeight = love.graphics.getDimensions( )
 
-	if not fs then
-		fullscrn = not fullscrn
+	scale = math.floor( math.max( (width / 400), (height / 300) ) )
+	
+	if mobileMode then
+		touchControls = newTouchControl()
+		touchControls:init()
 	else
-		fullscrn = fs
+		scale = 1
+		love.window.setMode(600, 300, {fullscreen = false})
 	end
 
-	if fullscrn then
-		w, h = love.window.getDesktopDimensions(1)
-		love.window.setMode(w, h, {fullscreen = true, vsync = true})
-
-		scale = h / 300
-
-		loadFonts()
-	else
-		love.window.setMode(800, 600, {fullscreen = false, vsync = true})
-		scale = 2
-	end
-
-	if state then
-		if state ~= "menu" then
-			_G[state .. "_load"]()
-		else
-			_G[state .. "_load"]()
-			menustate = "settings"
-		end
-	end
+	loadFonts()
+	
+	menu_load()
 end
 
 function string:split(delimiter) --Not by me
@@ -324,48 +393,4 @@ function string:split(delimiter) --Not by me
 	end
 	table.insert( result, string.sub( self, from   ) )
 	return result
-end
-
-function love.joystickadded(joy)
-	if joy:getID() == 1 then
-		game_joystick = joy
-	end
-end
-
-function love.gamepadpressed( joystick, button )
-	if joystick == game_joystick then
-		if button == "a" then
-			if state ~= "game" then
-				love.mousepressed(love.mouse.getX(), love.mouse.getY(), "l")
-			end
-		end
-		
-		if state == "game" then
-			if objects["ship"][1] then
-				objects["ship"][1]:gamePad(button)
-			end
-		end
-
-		if button == "start" then
-			if gameover then
-				game_load()
-			else
-				paused = not paused
-			end
-		end
-	end
-end
-
-function love.joystickaxis( joystick, axis, value )
-	if joystick == game_joystick then
-		if state == "game" then
-			game_joystickaxis(joystick, axis, value)
-		end
-	end
-end
-
-function love.joystickremoved(joystick)
-	if joystick == game_joystick then
-		game_joystick = nil
-	end
 end

@@ -1,39 +1,54 @@
 function newHud()
 	local hud = {}
 
-	hud.x = ( love.window.getWidth() / scale ) / 2 - hudfont:getWidth("[Health:") / 2 - 30
+	hud.x = getWindowWidth() * scale - 40 * scale
 	hud.y = 2
 
 	hud.shieldbar = 0
 	hud.shieldbarmax = 8
 	hud.shieldActive = false
 
+	hud.width = menubuttonfont:getWidth("[Health:") + 40 * scale
+
+	hud.sineWave = 1
+	hud.sineTimer = 0
+
 	function hud:draw(hearts)
-		love.graphics.setColor(255, 255, 255)
+		for k = 1, 4 do
+			
+			local i = 1
+			
+			love.graphics.setColor(255, 255, 255, 255)
 
-		love.graphics.print("[Health:", self.x, self.y)
+			if self.shieldbar / 2 >= k then
+				love.graphics.setColor(255, 255, 255, 255 * self.sineWave)
 
-		if hearts < 4 then
-			for k = 1, hearts do
-				love.graphics.draw(graphics["health"], ( self.x + hudfont:getWidth("[Health:") + 4 ) + (k - 1) * 10, self.y)
+				if k > hearts then
+					i = 4
+				else
+					i = 3
+				end	
+			else
+				if k > hearts then
+					i = 2
+				end
 			end
-		else
-			love.graphics.draw(graphics["health"], ( self.x + hudfont:getWidth("[Health:") + 1 ), self.y)
-			love.graphics.print(hearts, ( self.x + hudfont:getWidth("[Health:") + 14 ), self.y)
+
+			love.graphics.draw(graphics["health"], quads["health"][i], self.x + (k - 1) * 10 * scale, 2 * scale + menubuttonfont:getHeight("Score: " .. gamescore) / 2 - 4 * scale, 0, scale, scale)
 		end
-
-		love.graphics.print("]", self.x + hudfont:getWidth("[Health:") + 37, self.y)
-
-		love.graphics.setColor(0, 163, 255)
-
-		love.graphics.rectangle("fill", ( self.x + hudfont:getWidth("[") ), self.y + hudfont:getHeight("["), ( self.shieldbar / self.shieldbarmax ) * 92, 1)
-
-		love.graphics.setColor(255, 255, 255)
 	end
 
 	function hud:update(dt)
+		if self.shieldbar > 0 then
+			self.sineTimer = self.sineTimer + 0.5 * dt
+
+			self.sineWave = math.abs( math.sin( self.sineTimer * math.pi ) / 2 ) + 0.5
+		else
+			self.sineTimer = 0
+		end
+
 		if self.shieldActive then
-			self.shieldbar = math.max(self.shieldbar -  2 * dt, 0)
+			self.shieldbar = math.max(self.shieldbar - dt, 0)
 
 			if self.shieldbar == 0 then
 				self.shieldActive = false

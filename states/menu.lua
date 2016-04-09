@@ -1,12 +1,23 @@
 function menu_load(fromGame)
+	bgm:stop()
 
-	for k = 1, 100 do
-		stars[k] = newStar(love.math.random(4, love.window.getWidth() / scale - 8), love.math.random(4, love.window.getHeight() / scale - 8))
+	--save
+	if fromGame then
+		saveLoadSettings()
 	end
 
-	if fromGame then
-		bgm:stop()
-		saveLoadSettings(false)
+	--reload
+	saveLoadSettings(true)
+	
+	stars = {}
+	starSizes = {}
+	for k = 1, 100 do
+		stars[k] = {love.math.random(4, getWindowWidth() - 8), love.math.random(4, getWindowHeight() - 8)}
+		starSizes[k] = love.math.random(1, 3)
+	end
+
+	if mobileMode then
+		love.keyboard.setTextInput(false)
 	end
 
 	state = "menu"
@@ -31,66 +42,27 @@ function menu_load(fromGame)
 	mainmenu:setLooping(true)
 	mainmenu:play()
 
-	menuGUI = 
+	titleGUI =
 	{
-		["main"] = 
+		["main"] =
 		{
-			newGUI("button", getWindowWidth() / 2 - menubuttonfont:getWidth("Start Game") / 2, 160, "Start Game", function() love.audio.stop(mainmenu) game_load() end, {}),
-			newGUI("button", getWindowWidth() / 2 - menubuttonfont:getWidth("Settings") / 2, 190, "Settings", function() menustate = "settings" end),
-			newGUI("button", getWindowWidth() / 2 - menubuttonfont:getWidth("Credits") / 2, 220, "Credits", function() menustate = "credits" end),
-			newGUI("button", getWindowWidth() / 2 - menubuttonfont:getWidth("Exit Game") / 2, 250, "Exit Game", function() love.event.quit() end)
+			{love.graphics.newImage("graphics/title/gui/play.png"), function() love.audio.stop(mainmenu) game_load() end},
+			{love.graphics.newImage("graphics/title/gui/highscores.png"), highscore_load},
+			{love.graphics.newImage("graphics/title/gui/credits.png"), function() menustate = "credits" end},
+			{love.graphics.newImage("graphics/title/gui/quit.png"), love.event.quit}
 		},
-
-		["settings"] = 
-		{
-			newGUI("button", 4, 4, "MAIN MENU", function() menustate = "main" saveLoadSettings(false) end),
-			newGUI("button", getWindowWidth() / 2 - menubuttonfont:getWidth("Sounds: " .. tostring(soundOn)) / 2, 140, "Sounds: " .. tostring(soundOn), function() toggleSound() menuGUI["settings"][2]:setText("Sounds: " .. tostring(soundOn)) menuGUI["settings"][2]:center() end),
-			newGUI("button", getWindowWidth() / 2 - menubuttonfont:getWidth("Music: " .. tostring(musicOn)) / 2, 170, "Music: " .. tostring(musicOn), function() toggleMusic() menuGUI["settings"][3]:setText("Music: " .. tostring(musicOn)) menuGUI["settings"][3]:center() end),
-			newGUI("button", getWindowWidth() / 2 - menubuttonfont:getWidth("Toggle Fullscreen") / 2, 200, "Toggle Fullscreen", function() setFullscreen() end),
-			newGUI("button", getWindowWidth() / 2 - menubuttonfont:getWidth("Rebind Controls") / 2, 230, "Rebind Controls", function() if game_joystick then return end setControls = true end),
-			newGUI("button", getWindowWidth() / 2 - menubuttonfont:getWidth("Erase Data") / 2, 260, "Erase data", function() saveLoadSettings("del") game_playsound(gameoversnd) end)
-		},
-
-		["credits"] =
-		{
-			newGUI("button", 4, 4, "MAIN MENU", function() menustate = "main" creditsscroll = 0 credits_delay = 3 end),
-		}
 	}
 
-	setControls = false 
-	currentControl = 1
-
-	for k = 2, #menuGUI["settings"] do
-		menuGUI["settings"][k]:setFont(mediumfont)
-		menuGUI["settings"][k]:center()
-	end
-
-	menuGUI["settings"][1]:setFont(hudfont, false)
-	menuGUI["credits"][1]:setFont(hudfont)
+	creditsBack = {love.graphics.newImage("graphics/title/gui/back.png"), function() menustate = "main" end, pos = {4, 4}}
 
 	menustate = "main"
 
-	settings_boxX = getWindowWidth() / 2 - 175
-	settings_boxY = 140
-	settings_boxW = 350
-	settings_boxH = 140
-	settings_box_timer = 0
-
 	credits_delay = 3
 	creditsscroll = 0
-
-	controlCycle = {"Turn Right", "Turn Left", "Thrust", "Shoot", "Shield"}
-
-	gamepadDelayDown = false
-	gamepadDelay = 0.6
 end
 
 
-function menu_update(dt)
-	for k, v in ipairs(stars) do
-		v:update(dt)
-	end
-
+function updateTitleScreen(dt)
 	menufruitTimer:update(dt)
 
 	for k, v in pairs(titletimer) do
@@ -125,6 +97,10 @@ function menu_update(dt)
 			table.remove(menuFruit, k)
 		end
 	end
+end
+
+function menu_update(dt)
+	updateTitleScreen(dt)
 
 	if menustate == "credits" then
 		if credits_delay > 0 then
@@ -133,101 +109,76 @@ function menu_update(dt)
 			creditsscroll = math.min(creditsscroll + 26 * dt, 120 + hudfont:getHeight(credits[#credits]) * 16)
 		end
 	end
-
-	if gamepadDelayDown then
-		gamepadDelay = math.max(0, gamepadDelay - dt)
-	end
 end
 
-function menu_draw()
-
-	for k, v in ipairs(stars) do
-		v:draw()
+function drawTitleScreen()
+	love.graphics.setColor(255, 255, 255)
+	for k = 1, #starSizes do
+		love.graphics.setPointSize(starSizes[k])
+		love.graphics.points(stars[k][1] * scale, stars[k][2] * scale)
 	end
+	
 
 	for k, v in pairs(menuFruit) do
 		v:draw()
 	end
 
-	if _G["menu_" .. menustate .. "_draw"] then
-		_G["menu_" .. menustate .. "_draw"]()
-	end
-
-	if menuGUI[menustate] then
-		for i, v in pairs(menuGUI[menustate]) do
-			v:draw()
-		end
-	end
-
-	love.graphics.setFont(title)
-
-	love.graphics.setStencil(function() love.graphics.rectangle("fill", getWindowWidth() / 2 - title:getWidth("SPACE") / 2, 40, title:getWidth("SPACE"), title:getHeight("SPACE") / 2) end )
-	love.graphics.setColor(93, 96, 160)
-	love.graphics.print("SPACE", getWindowWidth() / 2 - title:getWidth("SPACE") / 2, 40)
-	love.graphics.setStencil()
-
-	love.graphics.setStencil(function() love.graphics.rectangle("fill", getWindowWidth() / 2 - title:getWidth("SPACE") / 2, 40 + title:getHeight("SPACE") / 2, title:getWidth("SPACE"), title:getHeight("SPACE") / 2) end )
-	love.graphics.setColor(67, 70, 114)
-	love.graphics.print("SPACE", getWindowWidth() / 2 - title:getWidth("SPACE") / 2, 40)
-	love.graphics.setStencil()
-
-	love.graphics.setFont(titleHuge)
-	for k = 1, #titlewords do
-		love.graphics.setColor(colorfade(titletimer[k], 2, fruit_colors[titleColor1[k]], fruit_colors[titleColor2[k]]))
-		love.graphics.print(titlewords[k], getWindowWidth() / 2 - titleHuge:getWidth("FRUIT") / 2 + (k - 1) * 40, 70)
-	end
-
-	if setControls then
-		love.graphics.setColor(0, 0, 0, 120)
-		love.graphics.rectangle("fill", 0, 0, getWindowWidth() * scale, getWindowHeight() * scale)
-
-		love.graphics.setFont(mediumfont)
-
-		local key = controls[currentControl]
-		local newkey = ""
-		if key == " " then
-			newkey = "Spacebar"
-		end
-
-		love.graphics.setColor(32, 32, 32)
-		love.graphics.rectangle("fill", getWindowWidth() / 2 - mediumfont:getWidth("Press a key for: " .. controlCycle[currentControl]) / 2, getWindowHeight() / 2 - mediumfont:getHeight("Press a key for: " .. controlCycle[currentControl]) / 2, mediumfont:getWidth("Press a key for: " .. controlCycle[currentControl]), mediumfont:getHeight("Press a key for: " .. controlCycle[currentControl]))
-		love.graphics.rectangle("fill", getWindowWidth() / 2 - mediumfont:getWidth("Current Bind: " .. newkey) / 2, getWindowHeight() / 2 - mediumfont:getHeight("Current Bind: " .. newkey) / 2 + 16, mediumfont:getWidth("Current Bind: " .. newkey), mediumfont:getHeight("Current Bind: " .. key))
-
-		love.graphics.setColor(255, 255, 255)
-
-		
-
-		love.graphics.print("Press a key for: " .. controlCycle[currentControl], getWindowWidth() / 2 - mediumfont:getWidth("Press a key for: " .. controlCycle[currentControl]) / 2, getWindowHeight() / 2 - mediumfont:getHeight("Press a key for: " .. controlCycle[currentControl]) / 2)
-		love.graphics.print("Current Bind: " .. newkey, getWindowWidth() / 2 - mediumfont:getWidth("Current Bind: " .. newkey) / 2, getWindowHeight() / 2 - mediumfont:getHeight("Current Bind: " .. newkey) / 2 + 16)
+	love.graphics.draw(titleimg, (getWindowWidth() / 2 - titleimg:getWidth() / 2) * scale, (getWindowHeight() * 0.10) * scale, 0, scale, scale)
+	
+	for k = 1, #fruittitle do
+		love.graphics.setColor(unpack(colorfade(titletimer[k], 2, fruit_colors[titleColor1[k]], fruit_colors[titleColor2[k]])))
+		love.graphics.draw(fruittitle[k], (getWindowWidth() / 2 - 100) * scale + (k - 1) * 42 * scale, (getWindowHeight() * 0.25) * scale, 0, scale, scale)
 	end
 end
 
-function menu_main_draw()
+function menu_draw()
+	drawTitleScreen()
+	
 	love.graphics.setColor(255, 255, 255)
-	love.graphics.setFont(hudfont)
-	love.graphics.print(versionstring, 1, getWindowHeight() - hudfont:getHeight(versionstring))
-end
-
-function menu_credits_draw()
-	love.graphics.setScissor(0, 120 * scale, getWindowWidth() * scale, getWindowHeight() * scale - 120 * scale)
-
-	local currFont = love.graphics.getFont()
-
-	love.graphics.setFont(hudfont)
-	for k = 1, #credits do
-		love.graphics.print(credits[k], getWindowWidth() / 2 - hudfont:getWidth(credits[k]) / 2, (120 + (k - 1) * 16) - creditsscroll)
+	if titleGUI[menustate] then
+		for k = 1, #titleGUI[menustate] do
+			love.graphics.draw(titleGUI[menustate][k][1], (getWindowWidth() / 2 - titleGUI[menustate][k][1]:getWidth() / 2) * scale, (getWindowHeight() * 0.50) * scale + (k - 1) * 28 * scale, 0, scale, scale)
+		end
 	end
 
-	love.graphics.setFont(currFont)
+	if menustate == "credits" then
+		love.graphics.draw(creditsBack[1], creditsBack.pos[1] * scale, creditsBack.pos[2] * scale, 0, scale, scale)
+	end
 
-	love.graphics.setScissor()
+	if menustate == "credits" then
+		love.graphics.setScissor(0, 120 * scale, getWindowWidth() * scale, getWindowHeight() * scale / 2)
+
+		local currFont = love.graphics.getFont()
+
+		love.graphics.setFont(menubuttonfont)
+		for k = 1, #credits do
+			love.graphics.print(credits[k], (getWindowWidth() * scale) / 2 - menubuttonfont:getWidth(credits[k]) / 2, ((getWindowHeight() * 0.50) + (k - 1) * 24) * scale - creditsscroll * scale)
+		end
+
+		love.graphics.setFont(currFont)
+
+		love.graphics.setScissor()
+	end
+
+	love.graphics.setFont(hudfont)
+	love.graphics.print(versionstring, 1, getWindowHeight() * scale - hudfont:getHeight(versionstring))
 end
 
 function menu_mousepressed(x, y, button)
-	if menuGUI[menustate] then
-		for i, v in pairs(menuGUI[menustate]) do
-			v:mousepressed(x, y, button)
+	if titleGUI[menustate] then
+		for k, v in pairs(titleGUI[menustate]) do
+			if titleGUI[menustate] then
+				local checkX, checkY, checkWidth, checkHeight = (getWindowWidth() / 2 - titleGUI[menustate][k][1]:getWidth() / 2) * scale, (getWindowHeight() * 0.50) * scale + (k - 1) * 28 * scale, titleGUI[menustate][k][1]:getWidth() * scale, titleGUI[menustate][k][1]:getHeight() * scale
+				if (x > checkX and x < checkX + checkWidth and y > checkY and y < checkY + checkHeight) then
+					titleGUI[menustate][k][2]()
+				end
+			end
 		end
+	end
+
+	local checkX, checkY, checkWidth, checkHeight = creditsBack.pos[1] * scale, creditsBack.pos[2] * scale, creditsBack[1]:getWidth() * scale, creditsBack[1]:getHeight() * scale
+	if (x > checkX and x < checkX + checkWidth and y > checkY and y < checkY + checkHeight) then
+		creditsBack[2]()
 	end
 end
 

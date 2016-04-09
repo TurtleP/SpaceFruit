@@ -5,7 +5,7 @@ function newGUI(...)
 
 	gui.type = f[1]
 	gui.x = f[2]
-	gui.y = f[3]
+	gui.y = f[3] * scale
 	gui.width = f[4]
 	gui.height = f[5]
 
@@ -60,7 +60,7 @@ function newGUI(...)
 	end
 
 	function gui:center()
-		self.x = getWindowWidth() / 2 - self.font:getWidth(self.text) / 2 
+		self.x = (getWindowWidth() * scale) / 2 - self.font:getWidth(self.text) / 2 
 	end
 
 	function gui:setText(text)
@@ -70,7 +70,7 @@ function newGUI(...)
 	end	
 
 	function gui:mousepressed(x, y, button)
-		if button == "l" then
+		if button == 1 then
 			if self:inside() then
 				if self.type == "button" then
 					if self.func then
@@ -89,7 +89,7 @@ function newGUI(...)
 		local mx = love.mouse.getX()
 		local my = love.mouse.getY()
 
-		return mx > self.x * scale and mx < self.x * scale + self.width * scale and my > self.y * scale and my < self.y * scale + self.height * scale
+		return mx > self.x and mx < self.x + self.width and my > self.y and my < self.y + self.height
 	end
 
 	return gui

@@ -40,7 +40,7 @@ function newSplat(x, y, fruit)
 
 	function splat:draw()
 		love.graphics.setColor(self.color)
-		love.graphics.draw(self.graphic, self.quad[self.quadi], self.x, self.y)
+		love.graphics.draw(self.graphic, self.quad[self.quadi], self.x * scale, self.y * scale, 0, scale, scale)
 		love.graphics.setColor(255, 255, 255)
 	end
 

@@ -4,8 +4,8 @@ function newBullet(x, y, rotation, parent)
 	bullet.x = x
 	bullet.y = y
 	bullet.rotation = rotation
-	bullet.speedy = -math.cos(rotation)*4
-	bullet.speedx = math.sin(rotation)*4
+	bullet.speedy = -math.cos(rotation)*8
+	bullet.speedx = math.sin(rotation)*8
 	bullet.graphic = bulletimg
 	bullet.width = 1
 	bullet.height = 6
@@ -17,9 +17,9 @@ function newBullet(x, y, rotation, parent)
 
 		if self.x < 0 then
 			self.remove = true
-		elseif self.x > love.window.getWidth() / scale then
+		elseif self.x > getWindowWidth() then
 			self.remove = true
-		elseif self.y > love.window.getHeight() / scale then
+		elseif self.y > getWindowHeight() then
 			self.remove = true
 		elseif self.y + self.height < 0 then
 			self.remove = true
@@ -27,7 +27,7 @@ function newBullet(x, y, rotation, parent)
 	end
 
 	function bullet:draw()
-		love.graphics.draw(self.graphic, self.x, self.y, self.rotation)
+		love.graphics.draw(self.graphic, self.x * scale, self.y * scale, self.rotation, scale, scale)
 	end
 
 	return bullet

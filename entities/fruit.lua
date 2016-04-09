@@ -17,12 +17,12 @@ function newFruit(x, y)
 	fruit.starty = y
 
 	fruit.speedx = fruitSpeedx[2]
-	if fruit.startx == love.window.getWidth() / scale then
+	if fruit.startx == getWindowWidth() then
 		fruit.speedx = fruitSpeedx[1]
 	end
 
 	fruit.speedy = fruitSpeedy[2]
-	if fruit.starty < (love.window.getHeight() / scale) / 2 then
+	if fruit.starty < getWindowHeight() / 2 then
 		fruit.speedy = fruitSpeedy[1]
 	end
 	
@@ -35,17 +35,17 @@ function newFruit(x, y)
 
 		if self.x + self.width < 0 and self.speedx < 0 then
 			self.remove = true
-		elseif self.x > love.window.getWidth() / scale and self.speedx > 0 then
+		elseif self.x > getWindowWidth() and self.speedx > 0 then
 			self.remove = true
 		elseif self.y + self.height < 0 and self.speedy < 0 then
 			self.remove = true
-		elseif self.y > love.window.getHeight() / scale and self.speedy > 0 then
+		elseif self.y > getWindowHeight() and self.speedy > 0 then
 			self.remove = true
 		end
 	end
 
 	function fruit:draw()
-		love.graphics.draw(self.graphics, quads["fruit"][self.quadi], self.x + 11, self.y + 11,self.rotation,1,1, 11, 11)
+		love.graphics.draw(self.graphics, quads["fruit"][self.quadi], (self.x + 11) * scale, (self.y + 11) * scale, self.rotation, scale, scale, 11, 11)
 	end
 
 	function fruit:onCollide(name,data)
@@ -67,9 +67,12 @@ function newFruit(x, y)
 		if not playerHit then
 			addScore(1)
 
-			--if game's score is divisible by 10
-			if gamescore%10 == 0 then
-				table.insert(objects["powerup"], newPowerup(self.x + (self.width / 2) - 8, self.y + (self.height / 2) - 8, 2))
+			if player.hp < player.maxhp then
+				local random = love.math.random(100)
+
+				if random < 30 then
+					table.insert(objects["powerup"], newPowerup(self.x + self.width / 2 - 4, self.y + self.height / 2 - 4))
+				end
 			end
 
 			player.hud.shieldbar = math.min(player.hud.shieldbar + 1, player.hud.shieldbarmax)
@@ -77,12 +80,12 @@ function newFruit(x, y)
 
 		table.insert(splats, newSplat(self.x, self.y, self.quadi))
 
-		if self.quadi == 3 then
+		--[[if self.quadi == 3 then
 			table.insert(objects["fruit"], newGrapePiece(self.x + self.width, self.y + self.height, love.math.random(90, 120), love.math.random(90, 120)))
 			table.insert(objects["fruit"], newGrapePiece(self.x + self.width, self.y - self.height, love.math.random(90, 120), -love.math.random(90, 120)))
 			table.insert(objects["fruit"], newGrapePiece(self.x, self.y + self.height, -love.math.random(90, 120), love.math.random(90, 120)))
 			table.insert(objects["fruit"], newGrapePiece(self.x, self.y, -love.math.random(90, 120), -love.math.random(90, 120)))
-		end
+		end]]
 
 		self.remove = true
 	end
@@ -112,17 +115,17 @@ function newGrapePiece(x, y, speedx, speedy, quadi)
 
 		if self.x + self.width < 0 and self.speedx < 0 then
 			self.remove = true
-		elseif self.x > love.window.getWidth() / scale and self.speedx > 0 then
+		elseif self.x > getWindowWidth() and self.speedx > 0 then
 			self.remove = true
 		elseif self.y + self.height < 0 and self.speedy < 0 then
 			self.remove = true
-		elseif self.y > love.window.getHeight() / scale and self.speedy > 0 then
+		elseif self.y > getWindowHeight() and self.speedy > 0 then
 			self.remove = true
 		end
 	end
 
 	function grapepiece:draw()
-		love.graphics.draw(self.graphic, self.x + 4, self.y + 4, self.rotation, 1, 1, 4, 4)
+		love.graphics.draw(self.graphic, (self.x + 4) * scale, (self.y + 4) * scale, self.rotation, scale, scale, 4, 4)
 	end
 
 	function grapepiece:onCollide(name,data)
